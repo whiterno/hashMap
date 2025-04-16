@@ -7,14 +7,16 @@
 
 #include "string_t.h"
 #include "crc32_hash.h"
+#include "hash_map.h"
 
-char* readFile(const char* filename){
+char* readFile(const char* filename, size_t* size){
     assert(filename);
 
     struct stat file_stat = {};
     if ((stat(filename, &file_stat)) == -1) return NULL;
 
     size_t file_size = file_stat.st_size;
+    *size = file_size;
 
     int file_descr = open(filename, O_RDONLY);
     if (file_descr == -1) return NULL;
@@ -29,6 +31,8 @@ char* readFile(const char* filename){
     return text;
 }
 
-String_t* buildStringArray(char* text){
+string_t* buildStringArray(char* text){
     assert(text);
+
+    int
 }

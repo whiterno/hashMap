@@ -3,9 +3,10 @@
 
 #include <stdint.h>
 
-typedef struct String_t{
+typedef struct string_t{
     char* string;
+    uint32_t hash;
     uint32_t length;
-} String_t;
+} string_t;
 
 #endif

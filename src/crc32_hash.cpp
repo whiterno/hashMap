@@ -8,7 +8,7 @@
 static uint32_t bitsReverse(uint32_t num);
 static uint32_t crc32_u32(uint32_t crc, uint32_t value);
 
-uint32_t crc32HashString(String_t string){
+uint32_t crc32HashString(string_t string){
     uint32_t hash  = 0;
     uint32_t chars = 0;
     uint32_t crc   = 0x12345678;
@@ -22,7 +22,7 @@ uint32_t crc32HashString(String_t string){
 }
 
 
-uint32_t bitsReverse(uint32_t num){
+static uint32_t bitsReverse(uint32_t num){
     num = ((num & 0xAAAAAAAA) >> 1) | ((num & 0x55555555) << 1);
     num = ((num & 0xCCCCCCCC) >> 2) | ((num & 0x33333333) << 2);
     num = ((num & 0xF0F0F0F0) >> 4) | ((num & 0x0F0F0F0F) << 4);
@@ -32,7 +32,7 @@ uint32_t bitsReverse(uint32_t num){
     return num;
 }
 
-uint32_t crc32_u32(uint32_t crc, uint32_t v){
+static uint32_t crc32_u32(uint32_t crc, uint32_t v){
     uint32_t tmp1 = bitsReverse(v);
     uint32_t tmp2 = bitsReverse(crc);
 

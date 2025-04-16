@@ -5,6 +5,6 @@
 
 #include "string_t.h"
 
-uint32_t crc32HashString(String_t string);
+uint32_t crc32HashString(string_t string);
 
 #endif
