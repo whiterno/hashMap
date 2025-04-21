@@ -4,27 +4,20 @@
 #include "crc32_hash.h"
 #include "hash_map.h"
 #include "list.h"
+#include "utils.h"
 
 int main(){
     size_t file_size = 0;
     char* text = readFile("book.txt", &file_size);
 
-    // char word1[6] = "hello";
-    // char word2[6] = "world";
-    // char word3[3] = "no";
+    uint32_t lines = countLines(text, file_size);
 
-    // string_t str1 = {.string = word1, .hash = 0, .length = 6};
-    // string_t str2 = {.string = word2, .hash = 0, .length = 6};
-    // string_t str3 = {.string = word3, .hash = 0, .length = 3};
+    string_t* string_array = buildStringArray(text, lines);
 
-    // List list = listCtor();
-    // debugPrint(&list);
-    // pushListElem(&list, str1);
-    // debugPrint(&list);
-    // pushListElem(&list, str2);
-    // debugPrint(&list);
-    // pushListElem(&list, str3);
-    // debugPrint(&list);
-    // popListElem(&list, str2);
-    // debugPrint(&list);
+    HashMap hashMap = hashMapCtor(crc32HashString, BASE_HASH_MAP_CAPACITY);
+    for (int i = 0; i < lines; i++){
+        hashMapAddElement(&hashMap, string_array[i]);
+    }
+
+    dumpStatisticsToFile("crc32.txt", &hashMap);
 }

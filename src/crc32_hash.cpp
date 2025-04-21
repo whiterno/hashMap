@@ -9,14 +9,21 @@ static uint32_t bitsReverse(uint32_t num);
 static uint32_t crc32_u32(uint32_t crc, uint32_t value);
 
 uint32_t crc32HashString(string_t string){
-    uint32_t hash  = 0;
-    uint32_t chars = 0;
-    uint32_t crc   = 0x12345678;
+    uint32_t hash      = 0;
+    uint32_t chars     = 0;
+    uint32_t crc       = 0x12345678;
+    int remainder = 0;
 
-    for (int i = 0; i < string.length; i += 4){
-        chars = *(uint32_t*)(string.string + i);
+    for (; remainder < int(string.length) - 3; remainder += 4){
+        chars = *(uint32_t*)(string.string + remainder);
         hash += crc32_u32(crc, chars);
     }
+
+    chars = 0;
+    for (int i = string.length - 1; i >= remainder; i--){
+        chars = chars * 16 + *(char*)(string.string + i);
+    }
+    hash += crc32_u32(crc, chars);
 
     return hash;
 }

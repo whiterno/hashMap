@@ -9,6 +9,7 @@ List listCtor();
 int pushListElem(List* list, data_t data);
 int popListElem(List* list, data_t data);
 int searchElement(List* list, data_t data);
+void listDtor(List* list);
 
 void debugPrint(List* list);
 
