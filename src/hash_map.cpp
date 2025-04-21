@@ -128,9 +128,13 @@ static HashMap rehash(HashMap* hashMap){
 void dumpStatisticsToFile(const char* filename, HashMap* hashMap){
     FILE* file = fopen(filename, "w");
 
+    fprintf(file, "Bucket index,Bucket size\n");
+
     for (uint32_t i = 0; i < hashMap->capacity; i++){
-        fprintf(file, "%u %u\n", i, hashMap->lists[i].elements_amount);
+        fprintf(file, "%u,%u\n", i, hashMap->lists[i].elements_amount);
     }
+
+    fclose(file);
 }
 
 void hashMapDebugPrint(HashMap* hashMap){

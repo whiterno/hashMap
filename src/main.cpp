@@ -19,5 +19,5 @@ int main(){
         hashMapAddElement(&hashMap, string_array[i]);
     }
 
-    dumpStatisticsToFile("crc32.txt", &hashMap);
+    dumpStatisticsToFile("plot/crc32.csv", &hashMap);
 }
