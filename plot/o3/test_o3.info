@@ -1,0 +1,77 @@
+==============================
+crc32
+------------------------------
+AVERAGE COLLISIONS: 7.613281
+STANDART DEVIATION: 2.643319
+------------------------------
+AVERAGE BUILD TIME: 10 306 119
+STANDART DEVIATION: 1 378 478
+------------------------------
+AVERAGE SEARCH TIME: 8 280 420
+STANDART DEVIATION : 1 021 391
+==============================
+
+==============================
+_mm_crc32
+------------------------------
+AVERAGE COLLISIONS: 7.613281
+STANDART DEVIATION: 2.643319
+------------------------------
+AVERAGE BUILD TIME: 5 233 468
+STANDART DEVIATION: 490 172
+------------------------------
+AVERAGE SEARCH TIME: 1 953 566
+STANDART DEVIATION : 107 179
+==============================
+
+==============================
+murmur3
+------------------------------
+AVERAGE COLLISIONS: 7.613281
+STANDART DEVIATION: 2.669421
+------------------------------
+AVERAGE BUILD TIME: 5 289 767
+STANDART DEVIATION: 569 714
+------------------------------
+AVERAGE SEARCH TIME: 2 127 593
+STANDART DEVIATION : 206 487
+==============================
+
+==============================
+sum
+------------------------------
+AVERAGE COLLISIONS: 7.613281
+STANDART DEVIATION: 17.934868
+------------------------------
+AVERAGE BUILD TIME: 12 366 089
+STANDART DEVIATION: 1 172 856
+------------------------------
+AVERAGE SEARCH TIME: 4 791 299
+STANDART DEVIATION : 420 028
+==============================
+
+==============================
+adler32
+------------------------------
+AVERAGE COLLISIONS: 7.613281
+STANDART DEVIATION: 7.366289
+------------------------------
+AVERAGE BUILD TIME: 6 057 688
+STANDART DEVIATION: 531 734
+------------------------------
+AVERAGE SEARCH TIME: 2 968 150
+STANDART DEVIATION : 219 223
+==============================
+
+==============================
+elf
+------------------------------
+AVERAGE COLLISIONS: 7.613281
+STANDART DEVIATION: 33.288990
+------------------------------
+AVERAGE BUILD TIME: 34 754 190
+STANDART DEVIATION: 4 166 372
+------------------------------
+AVERAGE SEARCH TIME: 12 338 447
+STANDART DEVIATION : 1 415 540
+==============================

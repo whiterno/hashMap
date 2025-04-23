@@ -79,6 +79,17 @@ uint32_t hashMapPopElement(HashMap* hashMap, data_t data){
     return inx;
 }
 
+bool hashMapSearchElement(HashMap* hashMap, data_t data){
+    assert(hashMap);
+
+    uint32_t supposed_index = hashMap->hash_func(data) % hashMap->capacity;
+    uint32_t inx = searchElement(&hashMap->lists[supposed_index], data);
+
+    if (inx == 0) return false;
+
+    return true;
+}
+
 void hashMapDtor(HashMap* hashMap){
     assert(hashMap);
 

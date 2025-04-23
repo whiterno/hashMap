@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdalign.h>
 
 #include "hash_map.h"
 #include "list.h"

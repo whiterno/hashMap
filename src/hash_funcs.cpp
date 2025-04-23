@@ -20,10 +20,37 @@ uint32_t crc32HashString(string_t string){
     }
 
     chars = 0;
-    for (int i = string.length - 1; i >= remainder; i--){
-        chars = chars * 16 + *(char*)(string.string + i);
+    for (int i = remainder; i < string.length; i++){
+        chars = chars * 256 + string.string[i];
     }
-    hash += crc32_u32(crc, chars);
+    for (int i = 4 - string.length % 4; i > 0; i--){
+        chars *= 256;
+    }
+    if (chars != 0) hash += crc32_u32(crc, chars);
+
+    return hash;
+}
+
+uint32_t _mm_crc32HashString(string_t string){
+    uint32_t hash   = 0;
+    uint32_t chars  = 0;
+    uint32_t crc    = 0x12345678;
+    int length =  int(string.length);
+    int remainder = 0;
+
+    for (; remainder < length - 3; remainder += 4){
+        chars = *(uint32_t*)(string.string + remainder);
+        hash += _mm_crc32_u32(crc, chars);
+    }
+
+    chars = 0;
+    for (int i = remainder; i < length; i++){
+        chars = chars * 256 + string.string[i];
+    }
+    for (int i = 4 - length % 4; i > 0; i--){
+        chars *= 256;
+    }
+    if (chars != 0) hash += _mm_crc32_u32(crc, chars);
 
     return hash;
 }
@@ -73,6 +100,56 @@ uint32_t murmur3HashString(string_t string){
 
     return hash;
 }
+
+uint32_t sumHashString(string_t string){
+    uint32_t hash  = 0;
+    uint32_t chars = 0;
+    int remainder  = 0;
+
+    for (; remainder < int(string.length) - 3; remainder += 4){
+        chars = *(uint32_t*)(string.string + remainder);
+        hash += chars;
+    }
+
+    chars = 0;
+    for (int i = remainder; i < string.length; i++){
+        chars = chars * 256 + string.string[i];
+    }
+    for (int i = 4 - string.length % 4; i > 0; i--){
+        chars *= 256;
+    }
+    if (chars != 0) hash += chars;
+
+    return hash;
+}
+
+uint32_t adler32HashString(string_t string){
+    uint32_t A = 1;
+    uint32_t B = 0;
+    uint32_t mod_adler = 65521;
+
+    for (int i = 0; i < string.length; i++)
+    {
+        A = (A + string.string[i]) % mod_adler;
+        B = (B + A) % mod_adler;
+    }
+
+    return (B << 16) | A;
+}
+
+uint32_t elfHashString(string_t string){
+    uint32_t hash = 0;
+    uint32_t high = 0;
+    for (int i = 0; i < string.length; i++){
+        hash = (hash << 4) + string.string[i];
+
+        if (high = hash & 0xF0000000) hash ^= high >> 24;
+
+        hash &= ~high;
+    }
+    return hash;
+}
+
 
 
 static uint32_t bitsReverse(uint32_t num){

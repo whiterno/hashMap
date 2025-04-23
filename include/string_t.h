@@ -2,6 +2,7 @@
 #define STRING_T_H
 
 #include <stdint.h>
+#include <immintrin.h>
 
 typedef struct string_t{
     char* string;

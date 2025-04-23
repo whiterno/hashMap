@@ -23,7 +23,7 @@ char* readFile(const char* filename, size_t* size){
     char* text = (char*)calloc(file_size, sizeof(char));
     if (!text) return NULL;
 
-    read(file_descr, text, file_size);
+    ssize_t dummy = read(file_descr, text, file_size);
 
     close(file_descr);
 
