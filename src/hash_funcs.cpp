@@ -36,21 +36,11 @@ uint32_t _mm_crc32HashString(string_t string){
     uint32_t chars  = 0;
     uint32_t crc    = 0x12345678;
     int length =  int(string.length);
-    int remainder = 0;
 
-    for (; remainder < length - 3; remainder += 4){
-        chars = *(uint32_t*)(string.string + remainder);
+    for (int i = 0; i < length; i += 4){
+        chars = *(uint32_t*)(string.string + i);
         hash += _mm_crc32_u32(crc, chars);
     }
-
-    chars = 0;
-    for (int i = remainder; i < length; i++){
-        chars = chars * 256 + string.string[i];
-    }
-    for (int i = 4 - length % 4; i > 0; i--){
-        chars *= 256;
-    }
-    if (chars != 0) hash += _mm_crc32_u32(crc, chars);
 
     return hash;
 }

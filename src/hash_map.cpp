@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <immintrin.h>
 
 #include "string_t.h"
 #include "hash_funcs.h"
@@ -20,15 +21,23 @@ string_t* buildStringArray(char* text, uint32_t lines){
     assert(text);
 
     string_t* string_array = (string_t*)calloc(lines, sizeof(string_t));
+    char* aligned_text     = (char*)aligned_alloc(YMM_BYTES_SIZE, YMM_BYTES_SIZE * lines);
+    char* word_begin       = NULL;
+    uint32_t length        = 0;
 
     for (uint32_t i = 0; i < lines; i++){
-        string_array[i].string = text;
+        word_begin = text;
 
         text  = strchr(text, '\n');
-        *text = '\0';
         text++;
 
-        string_array[i].length = text - string_array[i].string;
+        length = text - word_begin;
+
+        strncpy(aligned_text + 32 * i, word_begin, length);
+        memset(aligned_text + 32 * i + length, '\0', 32 - length);
+
+        string_array[i].string = aligned_text + 32 * i;
+        string_array[i].length = length;
     }
 
     return string_array;

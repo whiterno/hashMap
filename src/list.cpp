@@ -104,11 +104,15 @@ static void resizeUp(List* list){
     }
 }
 
+extern "C" {
+    int my_strcmp(const char* str1, const char* str2);
+}
+
 static int cmpListElems(data_t* data1, data_t* data2){
     assert(data1);
     assert(data2);
 
-    return strcmp(data1->string, data2->string);
+    return my_strcmp(data1->string, data2->string);
 }
 
 void listDtor(List* list){

@@ -2,3 +2,4 @@ build/
 crc32.txt
 clean.sh
 **/*.csv
+my_strcmp.o

@@ -7,6 +7,7 @@
 
 const int LOAD_FACTOR = 15;
 const int BASE_HASH_MAP_CAPACITY = 2;
+const int YMM_BYTES_SIZE = 32;
 
 typedef string_t data_t;
 typedef uint32_t (*hash_t)(data_t data);

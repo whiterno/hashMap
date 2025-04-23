@@ -30,6 +30,7 @@ void testAll(const char* filename, uint32_t test_amount){
     // TEST(elf);
 
     free(text);
+    free(test_data.data_array[0].string);
     free(test_data.data_array);
 }
 
@@ -40,11 +41,11 @@ void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t te
 
     // printf("------------------------------\n");
 
-    // FILE* build_file = fopen(filenames.build_filename, "w");
-    // testBuildTime(build_file, hash_func, test_data, test_amount);
-    // fclose(build_file);
+    FILE* build_file = fopen(filenames.build_filename, "w");
+    testBuildTime(build_file, hash_func, test_data, test_amount);
+    fclose(build_file);
 
-    // printf("------------------------------\n");
+    printf("------------------------------\n");
 
     FILE* search_file = fopen(filenames.search_filename, "w");
     testSearchTime(search_file, hash_func, test_data, test_amount);
@@ -100,9 +101,9 @@ void testBuildTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t te
 
     uint64_t average_time = 0;
 
-    fprintf(file, "Test index,Time\n");
+    // fprintf(file, "Test index,Time\n");
     for (uint32_t i = 0; i < test_amount; i++){
-        fprintf(file, "%u,%ld\n", i, build_time_array[i]);
+        // fprintf(file, "%u,%ld\n", i, build_time_array[i]);
         average_time += build_time_array[i];
     }
 
