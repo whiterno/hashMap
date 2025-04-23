@@ -8,7 +8,7 @@
 #include <fcntl.h>
 
 #include "string_t.h"
-#include "crc32_hash.h"
+#include "hash_funcs.h"
 #include "hash_map.h"
 #include "utils.h"
 #include "list.h"
@@ -105,10 +105,6 @@ static HashMap rehash(HashMap* hashMap){
     HashMap new_hashMap = hashMapCtor(hashMap->hash_func, hashMap->capacity * 2);
     new_hashMap.load_factor = hashMap->load_factor / 2;
 
-    for (uint32_t i = BASE_HASH_MAP_CAPACITY; i < new_hashMap.capacity; i++){
-        new_hashMap.lists[i] = listCtor();
-    }
-
     for (uint32_t i = 0; i < hashMap->capacity; i++){
         uint32_t elem_inx = (hashMap->lists + i)->list_elems[0].next_inx;
 
@@ -123,18 +119,6 @@ static HashMap rehash(HashMap* hashMap){
     hashMapDtor(hashMap);
 
     return new_hashMap;
-}
-
-void dumpStatisticsToFile(const char* filename, HashMap* hashMap){
-    FILE* file = fopen(filename, "w");
-
-    fprintf(file, "Bucket index,Bucket size\n");
-
-    for (uint32_t i = 0; i < hashMap->capacity; i++){
-        fprintf(file, "%u,%u\n", i, hashMap->lists[i].elements_amount);
-    }
-
-    fclose(file);
 }
 
 void hashMapDebugPrint(HashMap* hashMap){

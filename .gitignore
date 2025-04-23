@@ -1,2 +1,5 @@
 build/
 crc32.txt
+clean.sh
+plot/crc32
+plot/murmur3

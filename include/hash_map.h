@@ -41,6 +41,5 @@ uint32_t hashMapPopElement(HashMap* hashMap, data_t data);
 void hashMapDtor(HashMap* hashMap);
 
 void hashMapDebugPrint(HashMap* hashMap);
-void dumpStatisticsToFile(const char* filename, HashMap* hashMap);
 
 #endif

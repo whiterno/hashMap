@@ -1,8 +1,8 @@
 #include <stdint.h>
-
 #include <stdio.h>
+#include <immintrin.h>
 
-#include "crc32_hash.h"
+#include "hash_funcs.h"
 #include "string_t.h"
 
 static uint32_t bitsReverse(uint32_t num);
@@ -28,6 +28,52 @@ uint32_t crc32HashString(string_t string){
     return hash;
 }
 
+uint32_t murmur3HashString(string_t string){
+    uint32_t num    = 0x5bd1e995;
+    uint32_t seed   = 0;
+    int32_t  shift  = 24;
+    uint32_t length = string.length;
+    unsigned char* data = (unsigned char*)string.string;
+
+    uint32_t hash    = seed ^ length;
+    uint32_t xor_num = 0;
+
+    while (length >= 4)
+    {
+        xor_num  = data[0];
+        xor_num |= data[1] << 8;
+        xor_num |= data[2] << 16;
+        xor_num |= data[3] << 24;
+
+        xor_num *= num;
+        xor_num ^= xor_num >> shift;
+        xor_num *= num;
+
+        hash *= num;
+        hash ^= xor_num;
+
+        data += 4;
+        length -= 4;
+    }
+
+    switch (length)
+    {
+        case 3:
+        hash ^= data[2] << 16;
+        case 2:
+        hash ^= data[1] << 8;
+        case 1:
+        hash ^= data[0];
+        hash *= num;
+    };
+
+    hash ^= hash >> 13;
+    hash *= num;
+    hash ^= hash >> 15;
+
+    return hash;
+}
+
 
 static uint32_t bitsReverse(uint32_t num){
     num = ((num & 0xAAAAAAAA) >> 1) | ((num & 0x55555555) << 1);
@@ -43,17 +89,17 @@ static uint32_t crc32_u32(uint32_t crc, uint32_t v){
     uint32_t tmp1 = bitsReverse(v);
     uint32_t tmp2 = bitsReverse(crc);
 
-    uint64_t tmp5 = ((uint64_t)tmp1 << 32) ^ ((uint64_t)tmp2 << 32);
+    uint64_t tmp = ((uint64_t)tmp1 << 32) ^ ((uint64_t)tmp2 << 32);
 
     uint64_t polynomial = 0x11EDC6F41ULL;
 
     for (int i = 0; i < 32; i++){
-        if (tmp5 & (1ULL << (63 - i))){
-            tmp5 ^= (polynomial << (31 - i));
+        if (tmp & (1ULL << (63 - i))){
+            tmp ^= (polynomial << (31 - i));
         }
     }
 
-    uint32_t result = bitsReverse((uint32_t)tmp5);
+    uint32_t result = bitsReverse((uint32_t)tmp);
 
     return result;
 }
