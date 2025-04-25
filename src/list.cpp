@@ -109,9 +109,6 @@ extern "C" {
 }
 
 static int cmpListElems(data_t* data1, data_t* data2){
-    assert(data1);
-    assert(data2);
-
     return my_strcmp(data1->string, data2->string);
 }
 

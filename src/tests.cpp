@@ -41,9 +41,9 @@ void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t te
 
     // printf("------------------------------\n");
 
-    FILE* build_file = fopen(filenames.build_filename, "w");
-    testBuildTime(build_file, hash_func, test_data, test_amount);
-    fclose(build_file);
+    // FILE* build_file = fopen(filenames.build_filename, "w");
+    // testBuildTime(build_file, hash_func, test_data, test_amount);
+    // fclose(build_file);
 
     printf("------------------------------\n");
 
@@ -117,7 +117,7 @@ void testBuildTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t te
 
 void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount){
     assert(file);
-    srand(10);
+    // srand(10);
 
     HashMap hashMap = hashMapCtor(hash_func, BASE_HASH_MAP_CAPACITY);
     for (int j = 0; j < test_data.lines; j++){
@@ -126,10 +126,27 @@ void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t t
 
     uint32_t* index_array = (uint32_t*)calloc(SEARCH_ELEMS_AMOUNT, sizeof(uint32_t));
     int64_t* search_time_array = (int64_t*)calloc(test_amount, sizeof(int64_t));
+    uint32_t rand = 1022323;
 
     for (int i = 0; i < test_amount; i++){
         for (int j = 0; j < SEARCH_ELEMS_AMOUNT; j++){
-            index_array[j] = rand() % test_data.lines;
+            asm volatile(
+                "movl %%eax, %%ebx\n\t"
+                "shll $13, %%ebx\n\t"
+                "xorl %%ebx, %%eax\n\t"
+
+                "movl %%eax, %%ebx\n\t"
+                "shrl $17, %%ebx\n\t"
+                "xorl %%ebx, %%eax\n\t"
+
+                "movl %%eax, %%ebx\n\t"
+                "shll $5, %%ebx\n\t"
+                "xorl %%ebx, %%eax\n\t"
+                : "=a" (rand)
+                : "a" (rand)
+                : "ebx"
+            );
+            index_array[j] = rand % test_data.lines;
         }
 
         int64_t start_time = _rdtsc();

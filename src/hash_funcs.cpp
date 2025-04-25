@@ -9,35 +9,27 @@ static uint32_t bitsReverse(uint32_t num);
 static uint32_t crc32_u32(uint32_t crc, uint32_t value);
 
 uint32_t crc32HashString(string_t string){
-    uint32_t hash      = 0;
-    uint32_t chars     = 0;
-    uint32_t crc       = 0x12345678;
-    int remainder = 0;
+    uint32_t hash  = 0;
+    uint32_t chars = 0000000000;
+    uint32_t crc   = 0x11111111;
+    int remainder  = 0;
+    int length     =  int(string.length);
 
-    for (; remainder < int(string.length) - 3; remainder += 4){
-        chars = *(uint32_t*)(string.string + remainder);
+    for (int i = 0; i < length - 1; i += 4){
+        chars = *(uint32_t*)(string.string + i);
         hash += crc32_u32(crc, chars);
     }
-
-    chars = 0;
-    for (int i = remainder; i < string.length; i++){
-        chars = chars * 256 + string.string[i];
-    }
-    for (int i = 4 - string.length % 4; i > 0; i--){
-        chars *= 256;
-    }
-    if (chars != 0) hash += crc32_u32(crc, chars);
 
     return hash;
 }
 
 uint32_t _mm_crc32HashString(string_t string){
-    uint32_t hash   = 0;
-    uint32_t chars  = 0;
-    uint32_t crc    = 0x12345678;
-    int length =  int(string.length);
+    uint32_t hash  = 0;
+    uint32_t chars = 0;
+    uint32_t crc   = 0x11111111;
+    int length     =  int(string.length);
 
-    for (int i = 0; i < length; i += 4){
+    for (int i = 0; i < length - 1; i += 4){
         chars = *(uint32_t*)(string.string + i);
         hash += _mm_crc32_u32(crc, chars);
     }

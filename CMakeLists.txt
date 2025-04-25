@@ -4,7 +4,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -mavx2")
 
 project(hashMap)
 
-add_compile_options(-O3 -g -no-pie)
+add_compile_options(-O3 -g)
 
 enable_language(ASM_NASM)
 
