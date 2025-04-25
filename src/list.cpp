@@ -109,7 +109,15 @@ extern "C" {
 }
 
 static int cmpListElems(data_t* data1, data_t* data2){
+    #ifdef STRCMP_OPTIMIZATION
+
     return my_strcmp(data1->string, data2->string);
+
+    #else
+
+    return strcmp(data1->string, data2->string);
+
+    #endif
 }
 
 void listDtor(List* list){

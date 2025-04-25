@@ -28,7 +28,7 @@ typedef struct Filenames{
     printf("==============================\n");                                                                 \
 }
 
-void testAll(const char* filename, uint32_t test_amount);
+void testAll(const char* filename, uint32_t test_amount, const char* test_name);
 void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount);
 void testBuildTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount);
 void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount);

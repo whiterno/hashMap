@@ -37,7 +37,7 @@ uint32_t _mm_crc32HashString(string_t string){
     return hash;
 }
 
-uint32_t murmur3HashString(string_t string){
+uint32_t murmur2HashString(string_t string){
     uint32_t num    = 0x5bd1e995;
     uint32_t seed   = 0;
     int32_t  shift  = 24;

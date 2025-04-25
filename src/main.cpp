@@ -5,5 +5,5 @@
 #include "hash_funcs.h"
 
 int main(int argc, char* argv[]){
-    if (argc == 2) testAll("book.txt", atoi(argv[1]));
+    if (argc == 3) testAll("book.txt", atoi(argv[1]), argv[2]);
 }

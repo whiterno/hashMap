@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <immintrin.h>
-#include <chrono>
 #include <random>
 
 #include "hash_funcs.h"
@@ -13,7 +13,7 @@
 #include "utils.h"
 #include "tests.h"
 
-void testAll(const char* filename, uint32_t test_amount){
+void testAll(const char* filename, uint32_t test_amount, const char* test_name){
     size_t file_size = 0;
     char* text = readFile("book.txt", &file_size);
 
@@ -22,12 +22,20 @@ void testAll(const char* filename, uint32_t test_amount){
     TestData test_data = {.data_array = buildStringArray(text, lines),
                           .lines = lines};
 
-    // TEST(crc32);
-    TEST(_mm_crc32);
-    // TEST(murmur3);
-    // TEST(sum);
-    // TEST(adler32);
-    // TEST(elf);
+    if (strcmp(test_name, "crc32") == 0)     TEST(crc32);
+    if (strcmp(test_name, "_mm_crc32") == 0) TEST(_mm_crc32);
+    if (strcmp(test_name, "murmur3") == 0)   TEST(murmur2);
+    if (strcmp(test_name, "sum") == 0)       TEST(sum);
+    if (strcmp(test_name, "adler32") == 0)   TEST(adler32);
+    if (strcmp(test_name, "elf") == 0)       TEST(elf);
+    if (strcmp(test_name, "all") == 0){
+        TEST(crc32);
+        TEST(_mm_crc32);
+        TEST(murmur2);
+        TEST(sum);
+        TEST(adler32);
+        TEST(elf);
+    }
 
     free(text);
     free(test_data.data_array[0].string);
@@ -35,17 +43,21 @@ void testAll(const char* filename, uint32_t test_amount){
 }
 
 void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount){
-    // FILE* collison_file = fopen(filenames.collision_filename, "w");
-    // testCollisions(collison_file, hash_func, test_data);
-    // fclose(collison_file);
+    #ifndef VALGRIND
 
-    // printf("------------------------------\n");
-
-    // FILE* build_file = fopen(filenames.build_filename, "w");
-    // testBuildTime(build_file, hash_func, test_data, test_amount);
-    // fclose(build_file);
+    FILE* collison_file = fopen(filenames.collision_filename, "w");
+    testCollisions(collison_file, hash_func, test_data);
+    fclose(collison_file);
 
     printf("------------------------------\n");
+
+    FILE* build_file = fopen(filenames.build_filename, "w");
+    testBuildTime(build_file, hash_func, test_data, test_amount);
+    fclose(build_file);
+
+    printf("------------------------------\n");
+
+    #endif
 
     FILE* search_file = fopen(filenames.search_filename, "w");
     testSearchTime(search_file, hash_func, test_data, test_amount);
@@ -101,9 +113,9 @@ void testBuildTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t te
 
     uint64_t average_time = 0;
 
-    // fprintf(file, "Test index,Time\n");
+    fprintf(file, "Test index,Time\n");
     for (uint32_t i = 0; i < test_amount; i++){
-        // fprintf(file, "%u,%ld\n", i, build_time_array[i]);
+        fprintf(file, "%u,%ld\n", i, build_time_array[i]);
         average_time += build_time_array[i];
     }
 
@@ -117,7 +129,7 @@ void testBuildTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t te
 
 void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount){
     assert(file);
-    // srand(10);
+    srand(10);
 
     HashMap hashMap = hashMapCtor(hash_func, BASE_HASH_MAP_CAPACITY);
     for (int j = 0; j < test_data.lines; j++){
@@ -126,10 +138,12 @@ void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t t
 
     uint32_t* index_array = (uint32_t*)calloc(SEARCH_ELEMS_AMOUNT, sizeof(uint32_t));
     int64_t* search_time_array = (int64_t*)calloc(test_amount, sizeof(int64_t));
-    uint32_t rand = 1022323;
+    uint32_t rand_num = 1022323;
 
     for (int i = 0; i < test_amount; i++){
         for (int j = 0; j < SEARCH_ELEMS_AMOUNT; j++){
+            #ifdef RANDOM_OPTIMIZATION
+
             asm volatile(
                 "movl %%eax, %%ebx\n\t"
                 "shll $13, %%ebx\n\t"
@@ -142,11 +156,17 @@ void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t t
                 "movl %%eax, %%ebx\n\t"
                 "shll $5, %%ebx\n\t"
                 "xorl %%ebx, %%eax\n\t"
-                : "=a" (rand)
-                : "a" (rand)
+                : "=a" (rand_num)
+                : "a" (rand_num)
                 : "ebx"
             );
-            index_array[j] = rand % test_data.lines;
+            index_array[j] = rand_num % test_data.lines;
+
+            #else
+
+            index_array[j] = rand() % test_data.lines;
+
+            #endif
         }
 
         int64_t start_time = _rdtsc();
@@ -164,9 +184,9 @@ void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t t
 
     uint64_t average_time = 0;
 
-    // fprintf(file, "Test index,Time\n");
+    fprintf(file, "Test index,Time\n");
     for (uint32_t i = 0; i < test_amount; i++){
-        // fprintf(file, "%u,%ld\n", i, search_time_array[i]);
+        fprintf(file, "%u,%ld\n", i, search_time_array[i]);
         average_time += search_time_array[i];
     }
 
