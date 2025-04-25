@@ -34,6 +34,5 @@ set_source_files_properties(
     COMPILE_FLAGS "-f elf64"
 )
 
-add_executable(main src/main.cpp src/hash_map.cpp src/hash_funcs.cpp src/list.cpp src/utils.cpp src/tests.cpp)
+add_executable(main src/main.cpp src/hash_map.cpp src/hash_funcs.cpp src/list.cpp src/utils.cpp src/tests.cpp my_strcmp/my_strcmp.s)
 target_include_directories(main PUBLIC include)
-target_link_libraries(main PUBLIC "${CMAKE_SOURCE_DIR}/my_strcmp/my_strcmp.o")
