@@ -109,6 +109,24 @@ extern "C" {
 }
 
 static int cmpListElems(data_t* data1, data_t* data2){
+    #ifdef STRCMP_OPTIMIZATION_INLINE
+    uint32_t result = 0;
+
+    asm volatile (
+        "vmovdqa (%1), %%ymm0\n\t"
+        "vmovdqa (%2), %%ymm1\n\t"
+        "vpcmpeqb %%ymm1, %%ymm0, %%ymm2\n\t"
+        "vpmovmskb %%ymm2, %0\n\t"
+        "not %0\n\t"
+        : "=r"(result)
+        : "r"(data1->string), "r"(data2->string)
+        : "ymm0", "ymm1", "ymm2"
+    );
+
+    return result;
+
+    #endif
+
     #ifdef STRCMP_OPTIMIZATION
 
     return my_strcmp(data1->string, data2->string);

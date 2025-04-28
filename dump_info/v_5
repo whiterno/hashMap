@@ -1,0 +1,595 @@
+--------------------------------------------------------------------------------
+Profile data file 'callgrind.out.65364' (creator: callgrind-3.22.0)
+--------------------------------------------------------------------------------
+I1 cache: 
+D1 cache: 
+LL cache: 
+Timerange: Basic block 0 - 279039983
+Trigger: Program termination
+Profiled target:  ./build/main 10 _mm_crc32Unroll (PID 65364, part 1)
+Events recorded:  Ir
+Events shown:     Ir
+Event sort order: Ir
+Thresholds:       99
+Include dirs:     
+User annotated:   
+Auto-annotation:  on
+
+--------------------------------------------------------------------------------
+Ir                     
+--------------------------------------------------------------------------------
+1,436,836,562 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                    file:function
+--------------------------------------------------------------------------------
+694,551,940 (48.34%)  src/list.cpp:searchElement(List*, string_t) [/root/hashMap/build/main]
+286,981,092 (19.97%)  ???:0x0000000000003b60 [/root/hashMap/build/main]
+200,000,000 (13.92%)  src/hash_map.cpp:hashMapSearchElement(HashMap*, string_t) [/root/hashMap/build/main]
+108,054,941 ( 7.52%)  src/tests.cpp:testSearchTime(_IO_FILE*, unsigned int (*)(string_t), TestData, unsigned int) [/root/hashMap/build/main]
+ 80,000,000 ( 5.57%)  /usr/lib/gcc/x86_64-linux-gnu/13/include/smmintrin.h:hashMapSearchElement(HashMap*, string_t)
+ 27,967,742 ( 1.95%)  ./stdlib/./stdlib/random_r.c:random_r [/usr/lib/x86_64-linux-gnu/libc.so.6]
+ 23,000,000 ( 1.60%)  ./stdlib/./stdlib/random.c:random [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  6,000,000 ( 0.42%)  ./stdlib/./stdlib/rand.c:rand [/usr/lib/x86_64-linux-gnu/libc.so.6]
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: /usr/lib/gcc/x86_64-linux-gnu/13/include/smmintrin.h
+--------------------------------------------------------------------------------
+Ir                  
+
+-- line 835 ----------------------------------------
+         .           {
+         .             return __builtin_ia32_crc32si (__C, __V);
+         .           }
+         .           
+         .           #ifdef __x86_64__
+         .           extern __inline unsigned long long __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+         .           _mm_crc32_u64 (unsigned long long __C, unsigned long long __V)
+         .           {
+80,062,368 ( 5.57%)    return __builtin_ia32_crc32di (__C, __V);
+         .           }
+         .           #endif
+         .           
+         .           #ifdef __DISABLE_CRC32__
+         .           #undef __DISABLE_CRC32__
+         .           #pragma GCC pop_options
+         .           #endif /* __DISABLE_CRC32__ */
+         .           
+-- line 851 ----------------------------------------
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: src/list.cpp
+--------------------------------------------------------------------------------
+Ir                   
+
+-- line 5 ----------------------------------------
+          .           #include <stdalign.h>
+          .           
+          .           #include "hash_map.h"
+          .           #include "list.h"
+          .           
+          .           static void resizeUp(List* list);
+          .           static int cmpListElems(data_t* data1, data_t* data2);
+          .           
+      6,138 ( 0.00%)  List listCtor(){
+      2,046 ( 0.00%)      List list = {.list_elems = NULL, .capacity = LIST_BASE_CAPACITY};
+     10,230 ( 0.00%)      list.list_elems = (ListElem*)calloc(LIST_BASE_CAPACITY, sizeof(ListElem));
+    523,069 ( 0.04%)  => ./malloc/./malloc/malloc.c:calloc (2,046x)
+      2,046 ( 0.00%)      list.list_elems[0].next_inx = 0;
+          .               list.list_elems[0].prev_inx = 0;
+          .               list.elements_amount = 0;
+          .           
+      4,092 ( 0.00%)      list.tail_inx = 1;
+          .               for (uint32_t i = 1; i < LIST_BASE_CAPACITY; i++){
+     12,276 ( 0.00%)          list.list_elems[i].next_inx = i + 1;
+          .                   list.list_elems[i].prev_inx = i;
+          .               }
+          .           
+          .               return list;
+      6,138 ( 0.00%)  }
+          .           
+    138,756 ( 0.01%)  int pushListElem(List* list, data_t data){
+     69,378 ( 0.00%)      assert(list);
+          .           
+          .               uint32_t inx = searchElement(list, data);
+          .           
+          .               if (inx == 0){
+     46,252 ( 0.00%)          inx            = list->tail_inx;
+     92,504 ( 0.01%)          list->tail_inx = list->list_elems[inx].next_inx;
+          .           
+     46,252 ( 0.00%)          list->list_elems[inx].data    = data;
+     23,126 ( 0.00%)          list->list_elems[inx].counter = 0;
+     23,126 ( 0.00%)          uint32_t old_last_inx         = list->list_elems[0].prev_inx;
+          .           
+     23,126 ( 0.00%)          list->list_elems[inx].next_inx = 0;
+     23,126 ( 0.00%)          list->list_elems[inx].prev_inx = old_last_inx;
+          .           
+     23,126 ( 0.00%)          list->list_elems[0].prev_inx            = inx;
+     46,252 ( 0.00%)          list->list_elems[old_last_inx].next_inx = inx;
+          .           
+     46,252 ( 0.00%)          list->elements_amount++;
+          .               }
+          .           
+     23,126 ( 0.00%)      list->list_elems[inx].counter++;
+          .           
+     46,252 ( 0.00%)      if (list->tail_inx == list->capacity) resizeUp(list);
+          .           
+      4,249 ( 0.00%)      return list->list_elems[inx].counter;
+    161,882 ( 0.01%)  }
+          .           
+          .           int popListElem(List* list, data_t data){
+          .               assert(list);
+          .           
+          .               uint32_t inx = searchElement(list, data);
+          .           
+          .               if (inx == 0) return 0;
+          .           
+-- line 64 ----------------------------------------
+-- line 75 ----------------------------------------
+          .               list->list_elems[inx].next_inx = list->tail_inx;
+          .               list->tail_inx = inx;
+          .           
+          .               list->elements_amount--;
+          .           
+          .               return inx;
+          .           }
+          .           
+ 60,000,000 ( 4.18%)  int searchElement(List* list, data_t data){
+ 20,000,000 ( 1.39%)      assert(list);
+          .           
+ 40,092,504 ( 2.79%)      uint32_t inx = list->list_elems[0].next_inx;
+          .           
+ 95,708,661 ( 6.66%)      while (inx != 0){
+201,177,086 (14.00%)          if (cmpListElems(&data, &list->list_elems[inx].data) == 0) return inx;
+          .           
+ 75,660,364 ( 5.27%)          inx = list->list_elems[inx].next_inx;
+          .               }
+          .           
+          .               return inx;
+ 60,000,000 ( 4.18%)  }
+          .           
+          .           static void resizeUp(List* list){
+      8,498 ( 0.00%)      list->capacity  *= 2;
+     21,245 ( 0.00%)      list->list_elems = (ListElem*)realloc(list->list_elems, list->capacity * sizeof(ListElem));
+  2,328,390 ( 0.16%)  => ./malloc/./malloc/malloc.c:realloc (4,249x)
+     16,996 ( 0.00%)      memset(list->list_elems + list->capacity / 2, '\0', list->capacity / 2 * sizeof(ListElem));
+    107,848 ( 0.01%)      for (uint32_t i = list->tail_inx; i < list->capacity; i++){
+    112,097 ( 0.01%)          list->list_elems[i].next_inx = i + 1;
+     30,284 ( 0.00%)          list->list_elems[i].prev_inx = i;
+          .               }
+          .           }
+          .           
+          .           extern "C" {
+          .               int my_strcmp(const char* str1, const char* str2);
+          .           }
+          .           
+          .           static int cmpListElems(data_t* data1, data_t* data2){
+-- line 111 ----------------------------------------
+-- line 124 ----------------------------------------
+          .               );
+          .           
+          .               return result;
+          .           
+          .               #endif
+          .           
+          .               #ifdef STRCMP_OPTIMIZATION
+          .           
+143,490,546 ( 9.99%)      return my_strcmp(data1->string, data2->string);
+    861,852 ( 0.06%)  => ???:0x0000000000003b60 (143,642x)
+          .           
+          .               #else
+          .           
+          .               return strcmp(data1->string, data2->string);
+          .           
+          .               #endif
+          .           }
+          .           
+      4,092 ( 0.00%)  void listDtor(List* list){
+      6,138 ( 0.00%)      assert(list);
+          .           
+      6,138 ( 0.00%)      free(list->list_elems);
+    419,543 ( 0.03%)  => ./malloc/./malloc/malloc.c:free (2,046x)
+          .           
+          .               list->capacity = 0;
+      2,046 ( 0.00%)      list->tail_inx = 0;
+      4,092 ( 0.00%)  }
+          .           
+          .           void debugPrint(List* list){
+          .               assert(list);
+          .           
+          .               printf("CAPACITY: %u\n", list->capacity);
+          .               printf("TAIL_INX: %u\n", list->tail_inx);
+          .               printf("ELEM_AM : %u\n", list->elements_amount);
+          .               printf("INXS:     ");
+-- line 156 ----------------------------------------
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: src/hash_map.cpp
+--------------------------------------------------------------------------------
+Ir                  
+
+-- line 12 ----------------------------------------
+         .           #include "hash_funcs.h"
+         .           #include "hash_map.h"
+         .           #include "utils.h"
+         .           #include "list.h"
+         .           
+         .           static uint32_t rehashAddElement(HashMap* hashMap, data_t data);
+         .           static HashMap rehash(HashMap* hashMap);
+         .           
+         8 ( 0.00%)  string_t* buildStringArray(char* text, uint32_t lines){
+         3 ( 0.00%)      assert(text);
+         .           
+         7 ( 0.00%)      string_t* string_array = (string_t*)calloc(lines, sizeof(string_t));
+       396 ( 0.00%)  => ./malloc/./malloc/malloc.c:calloc (1x)
+         7 ( 0.00%)      char* aligned_text     = (char*)aligned_alloc(YMM_BYTES_SIZE, YMM_BYTES_SIZE * lines);
+       437 ( 0.00%)  => ./malloc/./malloc/malloc.c:aligned_alloc (1x)
+         .               char* word_begin       = NULL;
+         .               uint32_t length        = 0;
+         .           
+    23,394 ( 0.00%)      for (uint32_t i = 0; i < lines; i++){
+         .                   word_begin = text;
+         .           
+         .                   text  = strchr(text, '\n');
+    15,592 ( 0.00%)          text++;
+         .           
+    15,592 ( 0.00%)          length = text - word_begin;
+         .           
+    23,388 ( 0.00%)          strncpy(aligned_text + 32 * i, word_begin, length);
+    46,776 ( 0.00%)          memset(aligned_text + 32 * i + length, '\0', 32 - length);
+         .           
+    15,592 ( 0.00%)          string_array[i].string = aligned_text + 32 * i;
+     7,796 ( 0.00%)          string_array[i].length = length;
+         .               }
+         .           
+         .               return string_array;
+         9 ( 0.00%)  }
+         .           
+        14 ( 0.00%)  HashMap hashMapCtor(hash_t hash_func, uint32_t capacity){
+         1 ( 0.00%)      HashMap hashMap = {.lists = NULL,
+         .                                  .capacity = capacity,
+         .                                  .load_factor = 0,
+         2 ( 0.00%)                         .hash_func = hash_func};
+         .           
+        59 ( 0.00%)      hashMap.lists = (List*)calloc(capacity, sizeof(List));
+       223 ( 0.00%)  => ./malloc/./malloc/malloc.c:calloc (1x)
+         .           
+     6,234 ( 0.00%)      for (uint32_t i = 0; i < capacity; i++){
+    12,276 ( 0.00%)          hashMap.lists[i] = listCtor();
+       520 ( 0.00%)  => /root/hashMap/src/list.cpp:listCtor() (2x)
+         .               }
+         .           
+         .               return hashMap;
+        11 ( 0.00%)  }
+         .           
+   101,348 ( 0.01%)  uint32_t hashMapAddElement(HashMap* hashMap, data_t data){
+    31,184 ( 0.00%)      assert(hashMap);
+         .           
+    38,980 ( 0.00%)      data.hash = hashMap->hash_func(data);
+   101,348 ( 0.01%)  => /root/hashMap/src/hash_funcs.cpp:_mm_crc32UnrollHashString(string_t) (7,796x)
+    31,184 ( 0.00%)      uint32_t inx = data.hash % hashMap->capacity;
+         .           
+    77,960 ( 0.01%)      uint32_t counter = pushListElem(hashMap->lists + inx, data);
+ 2,446,270 ( 0.17%)  => /root/hashMap/src/list.cpp:pushListElem(List*, string_t) (7,796x)
+         .           
+    15,592 ( 0.00%)      if (counter == 1)
+    54,572 ( 0.00%)          hashMap->load_factor = (hashMap->load_factor * hashMap->capacity + 1) / hashMap->capacity;
+         .           
+    15,592 ( 0.00%)      if (hashMap->load_factor >= LOAD_FACTOR)
+        54 ( 0.00%)          *hashMap = rehash(hashMap);
+         .           
+         9 ( 0.00%)      return inx;
+    93,552 ( 0.01%)  }
+         .           
+         .           uint32_t hashMapPopElement(HashMap* hashMap, data_t data){
+         .               assert(hashMap);
+         .           
+         .               data.hash = hashMap->hash_func(data);
+         .               uint32_t inx = data.hash % hashMap->capacity;
+         .           
+         .               if (popListElem(hashMap->lists + inx, data) == 0) return hashMap->capacity;
+         .           
+         .               hashMap->load_factor = (hashMap->load_factor * hashMap->capacity - 1) / hashMap->capacity;
+         .           
+         .               return inx;
+         .           }
+         .           
+20,000,000 ( 1.39%)  bool hashMapSearchElement(HashMap* hashMap, data_t data){
+30,000,000 ( 2.09%)      assert(hashMap);
+         .           
+         .               #ifndef CRC32_OPTIMIZATION
+         .           
+         .                   #ifndef REMAINDER_OPTIMIZATION
+         .           
+         .                       uint32_t supposed_index = hashMap->hash_func(data) % hashMap->capacity;
+         .           
+         .                   #else
+-- line 100 ----------------------------------------
+-- line 115 ----------------------------------------
+         .                   uint64_t hash4 = *(uint64_t*)(data.string + 24);
+         .           
+         .           
+         .                   hash1 = _mm_crc32_u64(crc, hash1);
+         .                   hash2 = _mm_crc32_u64(crc, hash2);
+         .                   hash3 = _mm_crc32_u64(crc, hash3);
+         .                   hash4 = _mm_crc32_u64(crc, hash4);
+         .           
+30,000,000 ( 2.09%)          hash  = hash1 + hash2 + hash3 + hash4;
+         .           
+         .                   #ifndef REMAINDER_OPTIMIZATION
+         .           
+         .                       uint32_t supposed_index = hash % hashMap->capacity;
+         .           
+         .                   #else
+         .           
+20,000,000 ( 1.39%)              uint32_t supposed_index = hash & (hashMap->capacity - 1);
+         .           
+         .                   #endif
+         .           
+         .               #endif
+         .           
+60,000,000 ( 4.18%)      uint32_t inx = searchElement(&hashMap->lists[supposed_index], data);
+980,671,180 (68.25%)  => /root/hashMap/src/list.cpp:searchElement(List*, string_t) (10,000,000x)
+         .           
+20,000,000 ( 1.39%)      if (inx == 0) return false;
+         .           
+         .               return true;
+20,000,000 ( 1.39%)  }
+         .           
+         4 ( 0.00%)  void hashMapDtor(HashMap* hashMap){
+         2 ( 0.00%)      assert(hashMap);
+         .           
+     6,189 ( 0.00%)      for (uint32_t i = 0; i < hashMap->capacity; i++){
+     7,162 ( 0.00%)          listDtor(hashMap->lists + i);
+   228,581 ( 0.02%)  => /root/hashMap/src/list.cpp:listDtor(List*) (1,024x)
+         .               }
+         .           
+     1,052 ( 0.00%)      free(hashMap->lists);
+       271 ( 0.00%)  => ./malloc/./malloc/malloc.c:free (1x)
+         3 ( 0.00%)  }
+         .           
+         .           static uint32_t rehashAddElement(HashMap* hashMap, data_t data){
+         .               assert(hashMap);
+         .           
+    30,660 ( 0.00%)      uint32_t inx = data.hash % hashMap->capacity;
+         .           
+   107,310 ( 0.01%)      uint32_t counter = pushListElem(hashMap->lists + inx, data);
+ 3,622,041 ( 0.25%)  => /root/hashMap/src/list.cpp:pushListElem(List*, string_t) (15,330x)
+         .           
+         .               return inx;
+         .           }
+         .           
+         .           static HashMap rehash(HashMap* hashMap){
+         .               assert(hashMap);
+         .           
+        54 ( 0.00%)      HashMap new_hashMap = hashMapCtor(hashMap->hash_func, hashMap->capacity * 2);
+        27 ( 0.00%)      new_hashMap.load_factor = hashMap->load_factor / 2;
+         .           
+     5,155 ( 0.00%)      for (uint32_t i = 0; i < hashMap->capacity; i++){
+     5,110 ( 0.00%)          uint32_t elem_inx = (hashMap->lists + i)->list_elems[0].next_inx;
+         .           
+    33,726 ( 0.00%)          while (elem_inx != 0){
+    61,320 ( 0.00%)              data_t data = (hashMap->lists + i)->list_elems[elem_inx].data;
+    15,330 ( 0.00%)              rehashAddElement(&new_hashMap, data);
+         .           
+    61,320 ( 0.00%)              elem_inx = (hashMap->lists + i)->list_elems[elem_inx].next_inx;
+         .                   }
+         .               }
+         .           
+         .               hashMapDtor(hashMap);
+         .           
+         .               return new_hashMap;
+         .           }
+         .           
+-- line 185 ----------------------------------------
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: src/tests.cpp
+--------------------------------------------------------------------------------
+Ir                  
+
+-- line 9 ----------------------------------------
+         .           #include <chrono>
+         .           
+         .           #include "hash_funcs.h"
+         .           #include "hash_map.h"
+         .           #include "list.h"
+         .           #include "utils.h"
+         .           #include "tests.h"
+         .           
+        11 ( 0.00%)  void testAll(const char* filename, uint32_t test_amount, const char* test_name){
+         3 ( 0.00%)      assert(filename);
+         2 ( 0.00%)      assert(test_name);
+         .           
+         1 ( 0.00%)      size_t file_size = 0;
+         6 ( 0.00%)      char* text = readFile("book.txt", &file_size);
+    60,747 ( 0.00%)  => /root/hashMap/src/utils.cpp:readFile(char const*, unsigned long*) (1x)
+         .           
+         4 ( 0.00%)      uint32_t lines = countLines(text, file_size);
+   234,207 ( 0.02%)  => /root/hashMap/src/utils.cpp:countLines(char*, unsigned long) (1x)
+         .           
+         4 ( 0.00%)      TestData test_data = {.data_array = buildStringArray(text, lines),
+   885,503 ( 0.06%)  => /root/hashMap/src/hash_map.cpp:buildStringArray(char*, unsigned int) (1x)
+         .                                     .lines = lines};
+         .           
+         6 ( 0.00%)      if (strcmp(test_name, "crc32") == 0)           TEST(crc32);
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         7 ( 0.00%)      if (strcmp(test_name, "_mm_crc32") == 0)       TEST(_mm_crc32);
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         6 ( 0.00%)      if (strcmp(test_name, "murmur3") == 0)         TEST(murmur2);
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         6 ( 0.00%)      if (strcmp(test_name, "sum") == 0)             TEST(sum);
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         6 ( 0.00%)      if (strcmp(test_name, "adler32") == 0)         TEST(adler32);
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         6 ( 0.00%)      if (strcmp(test_name, "elf") == 0)             TEST(elf);
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         6 ( 0.00%)      if (strcmp(test_name, "_mm_crc32Unroll") == 0) TEST(_mm_crc32Unroll);
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         6 ( 0.00%)      if (strcmp(test_name, "all") == 0){
+        20 ( 0.00%)  => ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2 (1x)
+         .                   TEST(crc32);
+         .                   TEST(_mm_crc32);
+         .                   TEST(_mm_crc32Unroll);
+         .                   TEST(murmur2);
+         .                   TEST(sum);
+         .                   TEST(adler32);
+         .                   TEST(elf);
+         .               }
+         .           
+         3 ( 0.00%)      free(text);
+       168 ( 0.00%)  => ./malloc/./malloc/malloc.c:free (1x)
+         3 ( 0.00%)      free(test_data.data_array[0].string);
+        65 ( 0.00%)  => ./malloc/./malloc/malloc.c:free (1x)
+         3 ( 0.00%)      free(test_data.data_array);
+       402 ( 0.00%)  => ./malloc/./malloc/malloc.c:free (1x)
+        11 ( 0.00%)  }
+         .           
+         .           void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount){
+         .               #ifndef SEARCH_ONLY
+         .           
+         .               FILE* collison_file = fopen(filenames.collision_filename, "w");
+         .               testCollisions(collison_file, hash_func, test_data);
+         .               fclose(collison_file);
+         .           
+         .               printf("------------------------------\n");
+         .           
+         .               #endif
+         .           
+         5 ( 0.00%)      FILE* search_file = fopen(filenames.search_filename, "w");
+       609 ( 0.00%)  => ./libio/./libio/iofopen.c:fopen@@GLIBC_2.2.5 (1x)
+         6 ( 0.00%)      testSearchTime(search_file, hash_func, test_data, test_amount);
+1,433,776,834 (99.79%)  => src/tests.cpp:testSearchTime(_IO_FILE*, unsigned int (*)(string_t), TestData, unsigned int) (1x)
+         3 ( 0.00%)      fclose(search_file);
+       726 ( 0.00%)  => ./libio/./libio/iofclose.c:fclose@@GLIBC_2.2.5 (1x)
+         .           }
+         .           
+         .           void testCollisions(FILE* file, hash_t hash_func, TestData test_data){
+         .               assert(file);
+         .           
+         .               HashMap hashMap = hashMapCtor(hash_func, BASE_HASH_MAP_CAPACITY);
+         .           
+         .               for (int j = 0; j < test_data.lines; j++){
+-- line 72 ----------------------------------------
+-- line 85 ----------------------------------------
+         .               average_collision /= hashMap.capacity;
+         .           
+         .               printf("AVERAGE COLLISIONS: %.2f\n", average_collision);
+         .               printf("STANDART DEVIATION: %.2f\n", standartDeviationCollisions(&hashMap, average_collision));
+         .           
+         .               hashMapDtor(&hashMap);
+         .           }
+         .           
+        18 ( 0.00%)  void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount){
+         3 ( 0.00%)      assert(file);
+         3 ( 0.00%)      srand(10);
+     6,232 ( 0.00%)  => ./stdlib/./stdlib/random.c:srand (1x)
+         .           
+         8 ( 0.00%)      HashMap hashMap = hashMapCtor(hash_func, BASE_HASH_MAP_CAPACITY);
+       800 ( 0.00%)  => /root/hashMap/src/hash_map.cpp:hashMapCtor(unsigned int (*)(string_t), unsigned int) (1x)
+    23,394 ( 0.00%)      for (int j = 0; j < test_data.lines; j++){
+    31,184 ( 0.00%)          hashMapAddElement(&hashMap, test_data.data_array[j]);
+ 7,794,543 ( 0.54%)  => /root/hashMap/src/hash_map.cpp:hashMapAddElement(HashMap*, string_t) (7,796x)
+         .               }
+         .           
+         6 ( 0.00%)      uint32_t* index_array = (uint32_t*)calloc(SEARCH_ELEMS_AMOUNT, sizeof(uint32_t));
+       550 ( 0.00%)  => ./malloc/./malloc/malloc.c:calloc (1x)
+         9 ( 0.00%)      double* search_time_array = (double*)calloc(test_amount, sizeof(double));
+       171 ( 0.00%)  => ./malloc/./malloc/malloc.c:calloc (1x)
+         .               uint32_t rand_num = 1022323;
+         .           
+ 3,000,001 ( 0.21%)      for (int j = 0; j < SEARCH_ELEMS_AMOUNT; j++){
+         .                   #ifdef RANDOM_OPTIMIZATION
+         .           
+         .                   asm volatile(
+         .                       "movl %%eax, %%ebx\n\t"
+         .                       "shll $13, %%ebx\n\t"
+         .                       "xorl %%ebx, %%eax\n\t"
+         .           
+         .                       "movl %%eax, %%ebx\n\t"
+-- line 114 ----------------------------------------
+-- line 121 ----------------------------------------
+         .                       : "=a" (rand_num)
+         .                       : "a" (rand_num)
+         .                       : "ebx"
+         .                   );
+         .                   index_array[j] = rand_num % test_data.lines;
+         .           
+         .                   #else
+         .           
+ 5,000,000 ( 0.35%)          index_array[j] = rand() % test_data.lines;
+56,967,742 ( 3.96%)  => ./stdlib/./stdlib/rand.c:rand (1,000,000x)
+         .           
+         .                   #endif
+         .               }
+         .           
+        47 ( 0.00%)      for (int i = 0; i < test_amount; i++){
+        40 ( 0.00%)          auto start = std::chrono::steady_clock::now();
+     1,116 ( 0.00%)  => ???:std::chrono::_V2::steady_clock::now() (10x)
+         .           
+30,000,010 ( 2.09%)          for (int j = 0; j < SEARCH_ELEMS_AMOUNT; j++){
+70,000,000 ( 4.87%)              hashMapSearchElement(&hashMap, test_data.data_array[index_array[j]]);
+1,260,671,180 (87.74%)  => /root/hashMap/src/hash_map.cpp:hashMapSearchElement(HashMap*, string_t) (10,000,000x)
+         .                   }
+         .           
+        20 ( 0.00%)          auto end = std::chrono::steady_clock::now();
+       290 ( 0.00%)  => ???:std::chrono::_V2::steady_clock::now() (10x)
+         .                   auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+         .           
+        30 ( 0.00%)          search_time_array[i] = elapsed.count();
+         .               }
+         .           
+         3 ( 0.00%)      hashMapDtor(&hashMap);
+   236,038 ( 0.02%)  => /root/hashMap/src/hash_map.cpp:hashMapDtor(HashMap*) (1x)
+         .           
+         3 ( 0.00%)      double average_time = 0;
+         .           
+         .               fprintf(file, "Test index,Time ms\n");
+        32 ( 0.00%)      for (uint32_t i = 0; i < test_amount; i++){
+        10 ( 0.00%)          fprintf(file, "%u,%.2f\n", i, search_time_array[i]);
+        30 ( 0.00%)          average_time += search_time_array[i];
+         .               }
+         .           
+         7 ( 0.00%)      average_time /= test_amount;
+         .               double std_deviation = standartDeviationTime(search_time_array, test_amount, average_time);
+         .           
+         .               printf("AVERAGE SEARCH TIME: %.2f ms\n", average_time);
+         .               printf("STANDART DEVIATION : %.2f ms\n", std_deviation);
+         4 ( 0.00%)      printf("PERCENTAGE OF ERROR: %.2f\n", std_deviation / average_time * 100);
+         .           
+         3 ( 0.00%)      free(search_time_array);
+       104 ( 0.00%)  => ./malloc/./malloc/malloc.c:free (1x)
+         6 ( 0.00%)      free(index_array);
+        72 ( 0.00%)  => ./malloc/./malloc/malloc.c:free (1x)
+         9 ( 0.00%)  }
+         .           
+         .           double standartDeviationTime(double* time_array, uint32_t length, double average){
+         5 ( 0.00%)      assert(time_array);
+         .           
+         4 ( 0.00%)      double standart_deviation = 0;
+        15 ( 0.00%)      for (uint32_t i = 0; i < length; i++){
+        31 ( 0.00%)          standart_deviation += (time_array[i] - average) * (time_array[i] - average);
+         .               }
+         6 ( 0.00%)      standart_deviation = sqrt((float)standart_deviation / length);
+         .           
+         .               return standart_deviation;
+         .           }
+         .           
+         .           float standartDeviationCollisions(HashMap* hashMap, float average){
+         .               assert(hashMap);
+         .           
+         .               float standart_deviation = 0;
+-- line 183 ----------------------------------------
+
+--------------------------------------------------------------------------------
+The following files chosen for auto-annotation could not be found:
+--------------------------------------------------------------------------------
+  ./stdlib/./stdlib/rand.c
+  ./stdlib/./stdlib/random.c
+  ./stdlib/./stdlib/random_r.c
+
+--------------------------------------------------------------------------------
+Ir                     
+--------------------------------------------------------------------------------
+1,086,407,021 (75.61%)  events annotated
+

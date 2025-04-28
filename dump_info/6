@@ -1,0 +1,36 @@
+_mm_crc32
+FLAGS: O3 STRCMP_OPTIMIZATION_INLINE CRC32_OPTIMIZATION REMAINDER_OPTIMIZATION
+
+==============================
+_mm_crc32Unroll
+------------------------------
+AVERAGE SEARCH TIME: 53345.03 ms
+STANDART DEVIATION : 3017.11 ms
+PERCENTAGE OF ERROR: 5.66
+==============================
+
+IMPROVEMENT:
+120 024 646 - old
+111 447 793 - new
+7.14 %
+
+OLD:
+    21f1:	e8 6a 19 00 00       	call   3b60 <my_strcmp>
+NEW:
+    218b:	c5 fd 6f 06          	vmovdqa ymm0,YMMWORD PTR [rsi]
+    218f:	c5 fd 6f 09          	vmovdqa ymm1,YMMWORD PTR [rcx]
+    2193:	c5 fd 74 d1          	vpcmpeqb ymm2,ymm0,ymm1
+    2197:	c5 fd d7 ca          	vpmovmskb ecx,ymm2
+    219b:	f7 d1                	not    ecx
+
+через
+    asm volatile (
+        "vmovdqa (%1), %%ymm0\n\t"
+        "vmovdqa (%2), %%ymm1\n\t"
+        "vpcmpeqb %%ymm1, %%ymm0, %%ymm2\n\t"
+        "vpmovmskb %%ymm2, %0\n\t"
+        "not %0\n\t"
+        : "=r"(result)
+        : "r"(data1->string), "r"(data2->string)
+        : "ymm0", "ymm1", "ymm2"
+    );

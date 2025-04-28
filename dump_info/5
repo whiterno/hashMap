@@ -1,0 +1,25 @@
+_mm_crc32
+FLAGS: O3 STRCMP_OPTIMIZATION CRC32_OPTIMIZATION REMAINDER_OPTIMIZATION
+
+==============================
+_mm_crc32Unroll
+------------------------------
+AVERAGE SEARCH TIME: 57949.40 ms
+STANDART DEVIATION : 2911.72 ms
+PERCENTAGE OF ERROR: 5.02
+==============================
+
+IMPROVEMENT:
+129 874 275 - old
+120 024 646 - new
+7.58 %
+
+OLD:
+    18a5:	f7 71 08             	div    DWORD PTR [rcx+0x8]
+
+    uint32_t supposed_index = hashMap->hash_func(data) % hashMap->capacity;
+
+NEW:
+    18a6:	21 d0                	and    eax,edx
+
+    uint32_t supposed_index = hashMap->hash_func(data) & (hashMap->capacity - 1);

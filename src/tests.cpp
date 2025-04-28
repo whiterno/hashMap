@@ -6,6 +6,7 @@
 #include <string.h>
 #include <immintrin.h>
 #include <random>
+#include <chrono>
 
 #include "hash_funcs.h"
 #include "hash_map.h"
@@ -14,6 +15,9 @@
 #include "tests.h"
 
 void testAll(const char* filename, uint32_t test_amount, const char* test_name){
+    assert(filename);
+    assert(test_name);
+
     size_t file_size = 0;
     char* text = readFile("book.txt", &file_size);
 
@@ -22,15 +26,17 @@ void testAll(const char* filename, uint32_t test_amount, const char* test_name){
     TestData test_data = {.data_array = buildStringArray(text, lines),
                           .lines = lines};
 
-    if (strcmp(test_name, "crc32") == 0)     TEST(crc32);
-    if (strcmp(test_name, "_mm_crc32") == 0) TEST(_mm_crc32);
-    if (strcmp(test_name, "murmur3") == 0)   TEST(murmur2);
-    if (strcmp(test_name, "sum") == 0)       TEST(sum);
-    if (strcmp(test_name, "adler32") == 0)   TEST(adler32);
-    if (strcmp(test_name, "elf") == 0)       TEST(elf);
+    if (strcmp(test_name, "crc32") == 0)           TEST(crc32);
+    if (strcmp(test_name, "_mm_crc32") == 0)       TEST(_mm_crc32);
+    if (strcmp(test_name, "murmur3") == 0)         TEST(murmur2);
+    if (strcmp(test_name, "sum") == 0)             TEST(sum);
+    if (strcmp(test_name, "adler32") == 0)         TEST(adler32);
+    if (strcmp(test_name, "elf") == 0)             TEST(elf);
+    if (strcmp(test_name, "_mm_crc32Unroll") == 0) TEST(_mm_crc32Unroll);
     if (strcmp(test_name, "all") == 0){
         TEST(crc32);
         TEST(_mm_crc32);
+        TEST(_mm_crc32Unroll);
         TEST(murmur2);
         TEST(sum);
         TEST(adler32);
@@ -43,17 +49,11 @@ void testAll(const char* filename, uint32_t test_amount, const char* test_name){
 }
 
 void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount){
-    #ifndef VALGRIND
+    #ifndef SEARCH_ONLY
 
     FILE* collison_file = fopen(filenames.collision_filename, "w");
     testCollisions(collison_file, hash_func, test_data);
     fclose(collison_file);
-
-    printf("------------------------------\n");
-
-    FILE* build_file = fopen(filenames.build_filename, "w");
-    testBuildTime(build_file, hash_func, test_data, test_amount);
-    fclose(build_file);
 
     printf("------------------------------\n");
 
@@ -84,47 +84,10 @@ void testCollisions(FILE* file, hash_t hash_func, TestData test_data){
 
     average_collision /= hashMap.capacity;
 
-    printf("AVERAGE COLLISIONS: %f\n", average_collision);
-    printf("STANDART DEVIATION: %f\n", standartDeviationCollisions(&hashMap, average_collision));
+    printf("AVERAGE COLLISIONS: %.2f\n", average_collision);
+    printf("STANDART DEVIATION: %.2f\n", standartDeviationCollisions(&hashMap, average_collision));
 
     hashMapDtor(&hashMap);
-}
-
-void testBuildTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount){
-    assert(file);
-
-    int64_t* build_time_array = (int64_t*)calloc(test_amount, sizeof(int64_t));
-
-    for (uint32_t i = 0; i < test_amount; i++){
-        HashMap hashMap = hashMapCtor(hash_func, BASE_HASH_MAP_CAPACITY);
-
-        int64_t start_time = __rdtsc();
-
-        for (int j = 0; j < test_data.lines; j++){
-            hashMapAddElement(&hashMap, test_data.data_array[j]);
-        }
-
-        int64_t end_time = __rdtsc();
-
-        hashMapDtor(&hashMap);
-
-        build_time_array[i] = end_time - start_time;
-    }
-
-    uint64_t average_time = 0;
-
-    fprintf(file, "Test index,Time\n");
-    for (uint32_t i = 0; i < test_amount; i++){
-        fprintf(file, "%u,%ld\n", i, build_time_array[i]);
-        average_time += build_time_array[i];
-    }
-
-    average_time /= test_amount;
-
-    printf("AVERAGE BUILD TIME: %'ld\n", average_time);
-    printf("STANDART DEVIATION: %'ld\n", standartDeviationTime(build_time_array, test_amount, average_time));
-
-    free(build_time_array);
 }
 
 void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount){
@@ -137,76 +100,79 @@ void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t t
     }
 
     uint32_t* index_array = (uint32_t*)calloc(SEARCH_ELEMS_AMOUNT, sizeof(uint32_t));
-    int64_t* search_time_array = (int64_t*)calloc(test_amount, sizeof(int64_t));
+    double* search_time_array = (double*)calloc(test_amount, sizeof(double));
     uint32_t rand_num = 1022323;
 
+    for (int j = 0; j < SEARCH_ELEMS_AMOUNT; j++){
+        #ifdef RANDOM_OPTIMIZATION
+
+        asm volatile(
+            "movl %%eax, %%ebx\n\t"
+            "shll $13, %%ebx\n\t"
+            "xorl %%ebx, %%eax\n\t"
+
+            "movl %%eax, %%ebx\n\t"
+            "shrl $17, %%ebx\n\t"
+            "xorl %%ebx, %%eax\n\t"
+
+            "movl %%eax, %%ebx\n\t"
+            "shll $5, %%ebx\n\t"
+            "xorl %%ebx, %%eax\n\t"
+            : "=a" (rand_num)
+            : "a" (rand_num)
+            : "ebx"
+        );
+        index_array[j] = rand_num % test_data.lines;
+
+        #else
+
+        index_array[j] = rand() % test_data.lines;
+
+        #endif
+    }
+
     for (int i = 0; i < test_amount; i++){
-        for (int j = 0; j < SEARCH_ELEMS_AMOUNT; j++){
-            #ifdef RANDOM_OPTIMIZATION
-
-            asm volatile(
-                "movl %%eax, %%ebx\n\t"
-                "shll $13, %%ebx\n\t"
-                "xorl %%ebx, %%eax\n\t"
-
-                "movl %%eax, %%ebx\n\t"
-                "shrl $17, %%ebx\n\t"
-                "xorl %%ebx, %%eax\n\t"
-
-                "movl %%eax, %%ebx\n\t"
-                "shll $5, %%ebx\n\t"
-                "xorl %%ebx, %%eax\n\t"
-                : "=a" (rand_num)
-                : "a" (rand_num)
-                : "ebx"
-            );
-            index_array[j] = rand_num % test_data.lines;
-
-            #else
-
-            index_array[j] = rand() % test_data.lines;
-
-            #endif
-        }
-
-        int64_t start_time = _rdtsc();
+        auto start = std::chrono::steady_clock::now();
 
         for (int j = 0; j < SEARCH_ELEMS_AMOUNT; j++){
             hashMapSearchElement(&hashMap, test_data.data_array[index_array[j]]);
         }
 
-        int64_t end_time = _rdtsc();
+        auto end = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-        search_time_array[i] = end_time - start_time;
+        search_time_array[i] = elapsed.count();
     }
 
     hashMapDtor(&hashMap);
 
-    uint64_t average_time = 0;
+    double average_time = 0;
 
-    fprintf(file, "Test index,Time\n");
+    fprintf(file, "Test index,Time ms\n");
     for (uint32_t i = 0; i < test_amount; i++){
-        fprintf(file, "%u,%ld\n", i, search_time_array[i]);
+        fprintf(file, "%u,%.2f\n", i, search_time_array[i]);
         average_time += search_time_array[i];
     }
 
     average_time /= test_amount;
+    double std_deviation = standartDeviationTime(search_time_array, test_amount, average_time);
 
-    printf("AVERAGE SEARCH TIME: %'ld\n", average_time);
-    printf("STANDART DEVIATION : %'ld\n", standartDeviationTime(search_time_array, test_amount, average_time));
+    printf("AVERAGE SEARCH TIME: %.2f ms\n", average_time);
+    printf("STANDART DEVIATION : %.2f ms\n", std_deviation);
+    printf("PERCENTAGE OF ERROR: %.2f\n", std_deviation / average_time * 100);
 
     free(search_time_array);
     free(index_array);
 }
 
-int64_t standartDeviationTime(int64_t* time_array, uint32_t length, uint32_t average){
+double standartDeviationTime(double* time_array, uint32_t length, double average){
     assert(time_array);
 
-    int64_t standart_deviation = 0;
+    double standart_deviation = 0;
     for (uint32_t i = 0; i < length; i++){
         standart_deviation += (time_array[i] - average) * (time_array[i] - average);
     }
-    standart_deviation = (int64_t)sqrt((float)standart_deviation / length);
+    standart_deviation = sqrt((float)standart_deviation / length);
 
     return standart_deviation;
 }

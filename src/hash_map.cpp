@@ -91,7 +91,49 @@ uint32_t hashMapPopElement(HashMap* hashMap, data_t data){
 bool hashMapSearchElement(HashMap* hashMap, data_t data){
     assert(hashMap);
 
-    uint32_t supposed_index = hashMap->hash_func(data) % hashMap->capacity;
+    #ifndef CRC32_OPTIMIZATION
+
+        #ifndef REMAINDER_OPTIMIZATION
+
+            uint32_t supposed_index = hashMap->hash_func(data) % hashMap->capacity;
+
+        #else
+
+            uint32_t supposed_index = hashMap->hash_func(data) & (hashMap->capacity - 1);
+
+        #endif
+
+    #else
+
+        uint32_t hash  = 0;
+        uint32_t chars = 0;
+        uint64_t crc   = 0x1212121121111111;
+
+        uint64_t hash1 = *(uint64_t*)(data.string);
+        uint64_t hash2 = *(uint64_t*)(data.string + 8);
+        uint64_t hash3 = *(uint64_t*)(data.string + 16);
+        uint64_t hash4 = *(uint64_t*)(data.string + 24);
+
+
+        hash1 = _mm_crc32_u64(crc, hash1);
+        hash2 = _mm_crc32_u64(crc, hash2);
+        hash3 = _mm_crc32_u64(crc, hash3);
+        hash4 = _mm_crc32_u64(crc, hash4);
+
+        hash  = hash1 + hash2 + hash3 + hash4;
+
+        #ifndef REMAINDER_OPTIMIZATION
+
+            uint32_t supposed_index = hash % hashMap->capacity;
+
+        #else
+
+            uint32_t supposed_index = hash & (hashMap->capacity - 1);
+
+        #endif
+
+    #endif
+
     uint32_t inx = searchElement(&hashMap->lists[supposed_index], data);
 
     if (inx == 0) return false;

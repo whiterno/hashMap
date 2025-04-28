@@ -1,0 +1,44 @@
+_mm_crc32Unroll
+FLAGS: O3 STRCMP_OPTIMIZATION
+TESTS = 1 000
+SEARCH PER TEST = 1 000 000
+
+==============================
+_mm_crc32Unroll
+------------------------------
+AVERAGE SEARCH TIME: 61938.46 ms
+STANDART DEVIATION : 2322.45 ms
+PERCENTAGE OF ERROR: 3.75
+==============================
+
+IMPROVEMENT:
+175 407 171 - old
+133 560 304 - new
+
+23.86%
+
+```
+section .text
+
+global my_strcmp
+
+my_strcmp:
+    vmovdqa ymm0, [rdi]
+    vmovdqa ymm1, [rsi]
+
+    vpcmpeqq ymm2, ymm0, ymm1
+    vpmovmskb eax, ymm2
+
+    not eax
+
+    ret
+
+```
+
+В коде:
+```
+0000000000001f30 <_Z12pushListElemP4List8string_t>:
+...
+    1f77:	e8 c4 1b 00 00       	call   3b40 <my_strcmp>
+...
+```

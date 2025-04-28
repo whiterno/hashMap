@@ -37,6 +37,27 @@ uint32_t _mm_crc32HashString(string_t string){
     return hash;
 }
 
+uint32_t _mm_crc32UnrollHashString(string_t string){
+    uint32_t hash  = 0;
+    uint32_t chars = 0;
+    uint64_t crc   = 0x1212121121111111;
+
+    uint64_t hash1 = *(uint64_t*)(string.string);
+    uint64_t hash2 = *(uint64_t*)(string.string + 8);
+    uint64_t hash3 = *(uint64_t*)(string.string + 16);
+    uint64_t hash4 = *(uint64_t*)(string.string + 24);
+
+
+    hash1 = _mm_crc32_u64(crc, hash1);
+    hash2 = _mm_crc32_u64(crc, hash2);
+    hash3 = _mm_crc32_u64(crc, hash3);
+    hash4 = _mm_crc32_u64(crc, hash4);
+
+    hash  = hash1 + hash2 + hash3 + hash4;
+
+    return hash;
+}
+
 uint32_t murmur2HashString(string_t string){
     uint32_t num    = 0x5bd1e995;
     uint32_t seed   = 0;
