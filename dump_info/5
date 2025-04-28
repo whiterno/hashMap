@@ -10,9 +10,9 @@ PERCENTAGE OF ERROR: 5.02
 ==============================
 
 IMPROVEMENT:
-129 874 275 - old
-120 024 646 - new
-7.58 %
+62929.24 ms - old
+57949.40 ms - new
+7.91 %
 
 OLD:
     18a5:	f7 71 08             	div    DWORD PTR [rcx+0x8]

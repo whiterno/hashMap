@@ -10,9 +10,9 @@ PERCENTAGE OF ERROR: 5.66
 ==============================
 
 IMPROVEMENT:
-120 024 646 - old
-111 447 793 - new
-7.14 %
+57949.40 ms - old
+53345.03 ms - new
+7.95 %
 
 OLD:
     21f1:	e8 6a 19 00 00       	call   3b60 <my_strcmp>

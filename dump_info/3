@@ -12,10 +12,9 @@ PERCENTAGE OF ERROR: 3.75
 ==============================
 
 IMPROVEMENT:
-175 407 171 - old
-133 560 304 - new
-
-23.86%
+82388.13 ms - old
+61938.46 ms - new
+24.82%
 
 ```
 section .text
