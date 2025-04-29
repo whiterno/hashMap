@@ -22,14 +22,14 @@ typedef struct Filenames{
     printf("------------------------------\n");                                                                 \
     Filenames hash_name ## _files = {.collision_filename = "plot/" #hash_name "/" #hash_name "_collisions.csv", \
                                      .search_filename =  "plot/" #hash_name "/" #hash_name "_search_time.csv"}; \
-    test(hash_name ## HashString, hash_name ## _files, test_data, test_amount);                                 \
+    test(hash_name ## HashString, hash_name ## _files, test_data, test_amount, capacity);                       \
     printf("==============================\n");                                                                 \
 }
 
-void testAll(const char* filename, uint32_t test_amount, const char* test_name);
-void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount);
-void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount);
-void testCollisions(FILE* file, hash_t hash_func, TestData test_data);
+void testAll(const char* filename, uint32_t test_amount, const char* test_name, uint32_t capacity);
+void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount, uint32_t capacity);
+void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount, uint32_t capacity);
+void testCollisions(FILE* file, hash_t hash_func, TestData test_data, uint32_t capacity);
 double standartDeviationTime(double* time_array, uint32_t length, double average);
 float standartDeviationCollisions(HashMap* hashMap, float average);
 

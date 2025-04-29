@@ -14,7 +14,7 @@
 #include "utils.h"
 #include "tests.h"
 
-void testAll(const char* filename, uint32_t test_amount, const char* test_name){
+void testAll(const char* filename, uint32_t test_amount, const char* test_name, uint32_t capacity){
     assert(filename);
     assert(test_name);
 
@@ -48,11 +48,11 @@ void testAll(const char* filename, uint32_t test_amount, const char* test_name){
     free(test_data.data_array);
 }
 
-void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount){
+void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t test_amount, uint32_t capacity){
     #ifndef SEARCH_ONLY
 
     FILE* collison_file = fopen(filenames.collision_filename, "w");
-    testCollisions(collison_file, hash_func, test_data);
+    testCollisions(collison_file, hash_func, test_data, capacity);
     fclose(collison_file);
 
     printf("------------------------------\n");
@@ -60,14 +60,14 @@ void test(hash_t hash_func, Filenames filenames, TestData test_data, uint32_t te
     #endif
 
     FILE* search_file = fopen(filenames.search_filename, "w");
-    testSearchTime(search_file, hash_func, test_data, test_amount);
+    testSearchTime(search_file, hash_func, test_data, test_amount, capacity);
     fclose(search_file);
 }
 
-void testCollisions(FILE* file, hash_t hash_func, TestData test_data){
+void testCollisions(FILE* file, hash_t hash_func, TestData test_data, uint32_t capacity){
     assert(file);
 
-    HashMap hashMap = hashMapCtor(hash_func, BASE_HASH_MAP_CAPACITY);
+    HashMap hashMap = hashMapCtor(hash_func, capacity);
 
     for (int j = 0; j < test_data.lines; j++){
         hashMapAddElement(&hashMap, test_data.data_array[j]);
@@ -90,11 +90,11 @@ void testCollisions(FILE* file, hash_t hash_func, TestData test_data){
     hashMapDtor(&hashMap);
 }
 
-void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount){
+void testSearchTime(FILE* file, hash_t hash_func, TestData test_data, uint32_t test_amount, uint32_t capacity){
     assert(file);
     srand(10);
 
-    HashMap hashMap = hashMapCtor(hash_func, BASE_HASH_MAP_CAPACITY);
+    HashMap hashMap = hashMapCtor(hash_func, capacity);
     for (int j = 0; j < test_data.lines; j++){
         hashMapAddElement(&hashMap, test_data.data_array[j]);
     }

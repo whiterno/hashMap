@@ -11,34 +11,8 @@ option(RANDOM_OPTIMIZATION OFF)
 option(O3 OFF)
 option(CRC32_OPTIMIZATION OFF)
 option(REMAINDER_OPTIMIZATION OFF)
-
-if (SEARCH_ONLY)
-    add_compile_definitions(SEARCH_ONLY)
-endif()
-
-if (STRCMP_OPTIMIZATION)
-    add_compile_definitions(STRCMP_OPTIMIZATION)
-endif()
-
-if (STRCMP_OPTIMIZATION_INLINE)
-    add_compile_definitions(STRCMP_OPTIMIZATION_INLINE)
-endif()
-
-if (RANDOM_OPTIMIZATION)
-    add_compile_definitions(RANDOM_OPTIMIZATION)
-endif()
-
-if (CRC32_OPTIMIZATION)
-    add_compile_definitions(CRC32_OPTIMIZATION)
-endif()
-
-if (REMAINDER_OPTIMIZATION)
-    add_compile_definitions(REMAINDER_OPTIMIZATION)
-endif()
-
-if (O3)
-    add_compile_options(-O3)
-endif()
+option(RESIZABLE_USER OFF)
+option(LOAD_FACTOR 0)
 
 enable_language(ASM_NASM)
 
@@ -51,3 +25,39 @@ set_source_files_properties(
 
 add_executable(main src/main.cpp src/hash_map.cpp src/hash_funcs.cpp src/list.cpp src/utils.cpp src/tests.cpp my_strcmp/my_strcmp.s)
 target_include_directories(main PUBLIC include)
+
+if (SEARCH_ONLY)
+    target_compile_definitions(main PUBLIC SEARCH_ONLY)
+endif()
+
+if (STRCMP_OPTIMIZATION)
+    target_compile_definitions(main PUBLIC STRCMP_OPTIMIZATION)
+endif()
+
+if (STRCMP_OPTIMIZATION_INLINE)
+    target_compile_definitions(main PUBLIC STRCMP_OPTIMIZATION_INLINE)
+endif()
+
+if (RANDOM_OPTIMIZATION)
+    target_compile_definitions(main PUBLIC RANDOM_OPTIMIZATION)
+endif()
+
+if (CRC32_OPTIMIZATION)
+    target_compile_definitions(main PUBLIC CRC32_OPTIMIZATION)
+endif()
+
+if (REMAINDER_OPTIMIZATION)
+    target_compile_definitions(main PUBLIC REMAINDER_OPTIMIZATION)
+endif()
+
+if (RESIZABLE_USER)
+    target_compile_definitions(main PUBLIC RESIZABLE_USER)
+endif()
+
+if (LOAD_FACTOR)
+    target_compile_definitions(main PUBLIC LOAD_FACTOR=${LOAD_FACTOR})
+endif()
+
+if (O3)
+    target_compile_options(main PUBLIC -O3)
+endif()

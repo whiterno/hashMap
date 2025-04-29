@@ -5,8 +5,12 @@
 
 #include "string_t.h"
 
+#ifndef RESIZABLE_USER
+
 const int LOAD_FACTOR = 15;
-const int BASE_HASH_MAP_CAPACITY = 2;
+
+#endif
+
 const int YMM_BYTES_SIZE = 32;
 
 typedef string_t data_t;

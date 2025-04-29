@@ -17,6 +17,8 @@
 static uint32_t rehashAddElement(HashMap* hashMap, data_t data);
 static HashMap rehash(HashMap* hashMap);
 
+#include "rehash_user.h"
+
 string_t* buildStringArray(char* text, uint32_t lines){
     assert(text);
 
@@ -69,8 +71,12 @@ uint32_t hashMapAddElement(HashMap* hashMap, data_t data){
     if (counter == 1)
         hashMap->load_factor = (hashMap->load_factor * hashMap->capacity + 1) / hashMap->capacity;
 
+    #ifdef RESIZABLE_USER
+
     if (hashMap->load_factor >= LOAD_FACTOR)
-        *hashMap = rehash(hashMap);
+        *hashMap = rehashUser(hashMap);
+
+    #endif
 
     return inx;
 }
@@ -141,6 +147,12 @@ bool hashMapSearchElement(HashMap* hashMap, data_t data){
     return true;
 }
 
+float getLoadFactor(HashMap* hashMap){
+    assert(hashMap);
+
+    return hashMap->load_factor;
+}
+
 void hashMapDtor(HashMap* hashMap){
     assert(hashMap);
 
@@ -161,6 +173,7 @@ static uint32_t rehashAddElement(HashMap* hashMap, data_t data){
     return inx;
 }
 
+// rehash that you can copy to include/rehash_user.h if really don't want to write your own function
 static HashMap rehash(HashMap* hashMap){
     assert(hashMap);
 
