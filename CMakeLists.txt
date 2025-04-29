@@ -50,14 +50,6 @@ if (REMAINDER_OPTIMIZATION)
     target_compile_definitions(main PUBLIC REMAINDER_OPTIMIZATION)
 endif()
 
-if (RESIZABLE_USER)
-    target_compile_definitions(main PUBLIC RESIZABLE_USER)
-endif()
-
-if (LOAD_FACTOR)
-    target_compile_definitions(main PUBLIC LOAD_FACTOR=${LOAD_FACTOR})
-endif()
-
 if (O3)
     target_compile_options(main PUBLIC -O3)
 endif()

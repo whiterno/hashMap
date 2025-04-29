@@ -14,11 +14,6 @@
 #include "utils.h"
 #include "list.h"
 
-static uint32_t rehashAddElement(HashMap* hashMap, data_t data);
-static HashMap rehash(HashMap* hashMap);
-
-#include "rehash_user.h"
-
 string_t* buildStringArray(char* text, uint32_t lines){
     assert(text);
 
@@ -70,13 +65,6 @@ uint32_t hashMapAddElement(HashMap* hashMap, data_t data){
 
     if (counter == 1)
         hashMap->load_factor = (hashMap->load_factor * hashMap->capacity + 1) / hashMap->capacity;
-
-    #ifdef RESIZABLE_USER
-
-    if (hashMap->load_factor >= LOAD_FACTOR)
-        *hashMap = rehashUser(hashMap);
-
-    #endif
 
     return inx;
 }
@@ -161,39 +149,6 @@ void hashMapDtor(HashMap* hashMap){
     }
 
     free(hashMap->lists);
-}
-
-static uint32_t rehashAddElement(HashMap* hashMap, data_t data){
-    assert(hashMap);
-
-    uint32_t inx = data.hash % hashMap->capacity;
-
-    uint32_t counter = pushListElem(hashMap->lists + inx, data);
-
-    return inx;
-}
-
-// rehash that you can copy to include/rehash_user.h if really don't want to write your own function
-static HashMap rehash(HashMap* hashMap){
-    assert(hashMap);
-
-    HashMap new_hashMap = hashMapCtor(hashMap->hash_func, hashMap->capacity * 2);
-    new_hashMap.load_factor = hashMap->load_factor / 2;
-
-    for (uint32_t i = 0; i < hashMap->capacity; i++){
-        uint32_t elem_inx = (hashMap->lists + i)->list_elems[0].next_inx;
-
-        while (elem_inx != 0){
-            data_t data = (hashMap->lists + i)->list_elems[elem_inx].data;
-            rehashAddElement(&new_hashMap, data);
-
-            elem_inx = (hashMap->lists + i)->list_elems[elem_inx].next_inx;
-        }
-    }
-
-    hashMapDtor(hashMap);
-
-    return new_hashMap;
 }
 
 void hashMapDebugPrint(HashMap* hashMap){
