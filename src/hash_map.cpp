@@ -14,6 +14,8 @@
 #include "utils.h"
 #include "list.h"
 
+static uint32_t rehashAddElement(HashMap* hashMap, data_t data);
+
 string_t* buildStringArray(char* text, uint32_t lines){
     assert(text);
 
@@ -149,6 +151,38 @@ void hashMapDtor(HashMap* hashMap){
     }
 
     free(hashMap->lists);
+}
+
+static uint32_t rehashAddElement(HashMap* hashMap, data_t data){
+    assert(hashMap);
+
+    uint32_t inx = data.hash % hashMap->capacity;
+
+    uint32_t counter = pushListElem(hashMap->lists + inx, data);
+
+    return inx;
+}
+
+HashMap resize(HashMap* hashMap, uint32_t new_capacity){
+    assert(hashMap);
+
+    HashMap new_hashMap = hashMapCtor(hashMap->hash_func, new_capacity);
+    new_hashMap.load_factor = hashMap->load_factor / (float)new_capacity * hashMap->capacity;
+
+    for (uint32_t i = 0; i < hashMap->capacity; i++){
+        uint32_t elem_inx = (hashMap->lists + i)->list_elems[0].next_inx;
+
+        while (elem_inx != 0){
+            data_t data = (hashMap->lists + i)->list_elems[elem_inx].data;
+            rehashAddElement(&new_hashMap, data);
+
+            elem_inx = (hashMap->lists + i)->list_elems[elem_inx].next_inx;
+        }
+    }
+
+    hashMapDtor(hashMap);
+
+    return new_hashMap;
 }
 
 void hashMapDebugPrint(HashMap* hashMap){
