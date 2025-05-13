@@ -67,8 +67,6 @@ Mem:           7.8Gi       2.1Gi       4.8Gi        18Mi       1.1Gi       5.6Gi
 
 ## Структура элемента хеш-таблицы
 
-// TODO: поменять char* _mm_256
-
 ```C
 typedef struct string_t{
     char* string;
