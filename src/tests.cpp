@@ -44,7 +44,11 @@ void testAll(const char* filename, uint32_t test_amount, const char* test_name, 
     }
 
     free(text);
-    free(test_data.data_array[0].string);
+    #ifndef STRING_TO_VEC
+
+        free(test_data.data_array[0].string);
+
+    #endif
     free(test_data.data_array);
 }
 

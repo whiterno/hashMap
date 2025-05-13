@@ -10,43 +10,62 @@ static uint32_t crc32_u32(uint32_t crc, uint32_t value);
 
 uint32_t crc32HashString(string_t string){
     uint32_t hash  = 0;
-    uint32_t chars = 0000000000;
-    uint32_t crc   = 0x11111111;
-    int remainder  = 0;
-    int length     =  int(string.length);
 
-    for (int i = 0; i < length - 1; i += 4){
-        chars = *(uint32_t*)(string.string + i);
-        hash += crc32_u32(crc, chars);
-    }
+    #ifndef STRING_TO_VEC
+
+        uint32_t chars = 0000000000;
+        uint32_t crc   = 0x11111111;
+        int remainder  = 0;
+        int length     = int(string.length);
+
+        for (int i = 0; i < length - 1; i += 4){
+            chars = *(uint32_t*)(string.string + i);
+            hash += crc32_u32(crc, chars);
+        }
+
+    #endif
 
     return hash;
 }
 
 uint32_t _mm_crc32HashString(string_t string){
     uint32_t hash  = 0;
-    uint32_t chars = 0;
-    uint32_t crc   = 0x11111111;
-    int length     =  int(string.length);
 
-    for (int i = 0; i < length - 1; i += 4){
-        chars = *(uint32_t*)(string.string + i);
-        hash += _mm_crc32_u32(crc, chars);
-    }
+    #ifndef STRING_TO_VEC
+
+        uint32_t chars = 0;
+        uint32_t crc   = 0x11111111;
+        int length     =  int(string.length);
+
+        for (int i = 0; i < length - 1; i += 4){
+            chars = *(uint32_t*)(string.string + i);
+            hash += _mm_crc32_u32(crc, chars);
+        }
+
+    #endif
 
     return hash;
 }
 
 uint32_t _mm_crc32UnrollHashString(string_t string){
     uint32_t hash  = 0;
-    uint32_t chars = 0;
     uint64_t crc   = 0x1212121121111111;
 
-    uint64_t hash1 = *(uint64_t*)(string.string);
-    uint64_t hash2 = *(uint64_t*)(string.string + 8);
-    uint64_t hash3 = *(uint64_t*)(string.string + 16);
-    uint64_t hash4 = *(uint64_t*)(string.string + 24);
+    #ifndef STRING_TO_VEC
 
+        uint64_t hash1 = *(uint64_t*)(string.string);
+        uint64_t hash2 = *(uint64_t*)(string.string + 8);
+        uint64_t hash3 = *(uint64_t*)(string.string + 16);
+        uint64_t hash4 = *(uint64_t*)(string.string + 24);
+
+    #else
+
+        uint64_t hash1 = _mm256_extract_epi64(string.string, 0);
+        uint64_t hash2 = _mm256_extract_epi64(string.string, 1);
+        uint64_t hash3 = _mm256_extract_epi64(string.string, 2);
+        uint64_t hash4 = _mm256_extract_epi64(string.string, 3);
+
+    #endif
 
     hash1 = _mm_crc32_u64(crc, hash1);
     hash2 = _mm_crc32_u64(crc, hash2);
@@ -59,69 +78,80 @@ uint32_t _mm_crc32UnrollHashString(string_t string){
 }
 
 uint32_t murmur2HashString(string_t string){
-    uint32_t num    = 0x5bd1e995;
-    uint32_t seed   = 0;
-    int32_t  shift  = 24;
-    uint32_t length = string.length;
-    unsigned char* data = (unsigned char*)string.string;
 
-    uint32_t hash    = seed ^ length;
-    uint32_t xor_num = 0;
+    #ifndef STRING_TO_VEC
 
-    while (length >= 4)
-    {
-        xor_num  = data[0];
-        xor_num |= data[1] << 8;
-        xor_num |= data[2] << 16;
-        xor_num |= data[3] << 24;
+        uint32_t num    = 0x5bd1e995;
+        uint32_t seed   = 0;
+        int32_t  shift  = 24;
+        uint32_t length = string.length;
+        unsigned char* data = (unsigned char*)string.string;
 
-        xor_num *= num;
-        xor_num ^= xor_num >> shift;
-        xor_num *= num;
+        uint32_t hash    = seed ^ length;
+        uint32_t xor_num = 0;
 
+        while (length >= 4)
+        {
+            xor_num  = data[0];
+            xor_num |= data[1] << 8;
+            xor_num |= data[2] << 16;
+            xor_num |= data[3] << 24;
+
+            xor_num *= num;
+            xor_num ^= xor_num >> shift;
+            xor_num *= num;
+
+            hash *= num;
+            hash ^= xor_num;
+
+            data += 4;
+            length -= 4;
+        }
+
+        switch (length)
+        {
+            case 3: hash ^= data[2] << 16;
+            case 2: hash ^= data[1] << 8;
+            case 1: hash ^= data[0];
+                    hash *= num;
+        };
+
+        hash ^= hash >> 13;
         hash *= num;
-        hash ^= xor_num;
+        hash ^= hash >> 15;
 
-        data += 4;
-        length -= 4;
-    }
+    #else
 
-    switch (length)
-    {
-        case 3:
-        hash ^= data[2] << 16;
-        case 2:
-        hash ^= data[1] << 8;
-        case 1:
-        hash ^= data[0];
-        hash *= num;
-    };
+        uint32_t hash = 0;
 
-    hash ^= hash >> 13;
-    hash *= num;
-    hash ^= hash >> 15;
+    #endif
 
     return hash;
 }
 
 uint32_t sumHashString(string_t string){
     uint32_t hash  = 0;
-    uint32_t chars = 0;
-    int remainder  = 0;
 
-    for (; remainder < int(string.length) - 3; remainder += 4){
-        chars = *(uint32_t*)(string.string + remainder);
-        hash += chars;
-    }
+    #ifndef STRING_TO_VEC
 
-    chars = 0;
-    for (int i = remainder; i < string.length; i++){
-        chars = chars * 256 + string.string[i];
-    }
-    for (int i = 4 - string.length % 4; i > 0; i--){
-        chars *= 256;
-    }
-    if (chars != 0) hash += chars;
+        uint32_t chars = 0;
+        int remainder  = 0;
+
+        for (; remainder < int(string.length) - 3; remainder += 4){
+            chars = *(uint32_t*)(string.string + remainder);
+            hash += chars;
+        }
+
+        chars = 0;
+        for (int i = remainder; i < string.length; i++){
+            chars = chars * 256 + string.string[i];
+        }
+        for (int i = 4 - string.length % 4; i > 0; i--){
+            chars *= 256;
+        }
+        if (chars != 0) hash += chars;
+
+    #endif
 
     return hash;
 }

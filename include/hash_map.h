@@ -22,6 +22,10 @@ typedef struct ListElem{
 
     uint32_t counter;
 
+    #ifdef STRING_TO_VEC
+    char dummy[52];
+    #endif
+
     data_t data;
 } ListElem;
 
@@ -46,7 +50,5 @@ uint32_t hashMapPopElement(HashMap* hashMap, data_t data);
 HashMap resize(HashMap* hashMap, uint32_t new_capacity);
 bool hashMapSearchElement(HashMap* hashMap, data_t data);
 void hashMapDtor(HashMap* hashMap);
-
-void hashMapDebugPrint(HashMap* hashMap);
 
 #endif

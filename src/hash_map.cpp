@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <immintrin.h>
+#include <stdalign.h>
 
 #include "string_t.h"
 #include "hash_funcs.h"
@@ -19,10 +20,14 @@ static uint32_t rehashAddElement(HashMap* hashMap, data_t data);
 string_t* buildStringArray(char* text, uint32_t lines){
     assert(text);
 
-    string_t* string_array = (string_t*)calloc(lines, sizeof(string_t));
+    // string_t* string_array = (string_t*)calloc(lines, sizeof(string_t));
+    string_t* string_array = (string_t*)aligned_alloc(sizeof(string_t), lines * sizeof(string_t));
     char* aligned_text     = (char*)aligned_alloc(YMM_BYTES_SIZE, YMM_BYTES_SIZE * lines);
     char* word_begin       = NULL;
     uint32_t length        = 0;
+
+    assert(aligned_text);
+    assert(((uintptr_t)aligned_text % 32) == 0);
 
     for (uint32_t i = 0; i < lines; i++){
         word_begin = text;
@@ -35,9 +40,22 @@ string_t* buildStringArray(char* text, uint32_t lines){
         strncpy(aligned_text + 32 * i, word_begin, length);
         memset(aligned_text + 32 * i + length, '\0', 32 - length);
 
-        string_array[i].string = aligned_text + 32 * i;
+        #ifndef STRING_TO_VEC
+
+            string_array[i].string = aligned_text + 32 * i;
+
+        #else
+            string_array[i].string = _mm256_load_si256((__m256i*)(aligned_text + 32 * i));
+        #endif
+
         string_array[i].length = length;
     }
+
+    #ifdef STRING_TO_VEC
+
+        free(aligned_text);
+
+    #endif
 
     return string_array;
 }
@@ -102,14 +120,23 @@ bool hashMapSearchElement(HashMap* hashMap, data_t data){
     #else
 
         uint32_t hash  = 0;
-        uint32_t chars = 0;
         uint64_t crc   = 0x1212121121111111;
 
-        uint64_t hash1 = *(uint64_t*)(data.string);
-        uint64_t hash2 = *(uint64_t*)(data.string + 8);
-        uint64_t hash3 = *(uint64_t*)(data.string + 16);
-        uint64_t hash4 = *(uint64_t*)(data.string + 24);
+        #ifndef STRING_TO_VEC
 
+            uint64_t hash1 = *(uint64_t*)(data.string);
+            uint64_t hash2 = *(uint64_t*)(data.string + 8);
+            uint64_t hash3 = *(uint64_t*)(data.string + 16);
+            uint64_t hash4 = *(uint64_t*)(data.string + 24);
+
+        #else
+
+            uint64_t hash1 = _mm256_extract_epi64(data.string, 0);
+            uint64_t hash2 = _mm256_extract_epi64(data.string, 1);
+            uint64_t hash3 = _mm256_extract_epi64(data.string, 2);
+            uint64_t hash4 = _mm256_extract_epi64(data.string, 3);
+
+        #endif
 
         hash1 = _mm_crc32_u64(crc, hash1);
         hash2 = _mm_crc32_u64(crc, hash2);
@@ -183,24 +210,4 @@ HashMap resize(HashMap* hashMap, uint32_t new_capacity){
     hashMapDtor(hashMap);
 
     return new_hashMap;
-}
-
-void hashMapDebugPrint(HashMap* hashMap){
-    printf("==========================\n");
-
-    if (hashMap == NULL){
-        printf("NULL\n");
-        printf("==========================\n");
-
-        return;
-    }
-
-    printf("HM CAPACITY: %d\n", hashMap->capacity);
-    printf("LOAD FACTOR: %f\n", hashMap->load_factor);
-
-    for (uint32_t i = 0; i < hashMap->capacity; i++){
-        printf("HASHMAP INX: %d\n", i);
-        debugPrint(hashMap->lists + i);
-    }
-    printf("==========================\n");
 }

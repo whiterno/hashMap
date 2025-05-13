@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(hashMap)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -mavx2 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -mavx -mavx2 -g")
 
 option(SEARCH_ONLY OFF)
 option(STRCMP_OPTIMIZATION OFF)
@@ -11,8 +11,7 @@ option(RANDOM_OPTIMIZATION OFF)
 option(O3 OFF)
 option(CRC32_OPTIMIZATION OFF)
 option(REMAINDER_OPTIMIZATION OFF)
-option(RESIZABLE_USER OFF)
-option(LOAD_FACTOR 0)
+option(STRING_TO_VEC OFF)
 
 enable_language(ASM_NASM)
 
@@ -48,6 +47,10 @@ endif()
 
 if (REMAINDER_OPTIMIZATION)
     target_compile_definitions(main PUBLIC REMAINDER_OPTIMIZATION)
+endif()
+
+if (STRING_TO_VEC)
+    target_compile_definitions(main PUBLIC STRING_TO_VEC)
 endif()
 
 if (O3)
